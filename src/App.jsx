@@ -20,6 +20,7 @@ import Watch from '@/pages/Watch';
 import Play from '@/pages/Play';
 import Profile from '@/pages/Profile';
 import Browse from '@/pages/Browse';
+import Search from '@/pages/Search';
 import Onboarding from '@/pages/Onboarding';
 
 const App = () => {
@@ -51,6 +52,7 @@ const App = () => {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/browse/:categoryId" element={<Browse />} />
+      <Route path="/search" element={<Search />} />
       <Route path="/watch/:id" element={<Watch />} />
 
       {/* Play page – dedicated player */}
