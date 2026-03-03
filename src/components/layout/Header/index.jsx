@@ -82,7 +82,8 @@ const Header = () => {
     };
 
     const goToItem = (item) => {
-        navigate(`/watch/${item.id}`);
+        const type = item.media_type === 'tv' ? 'tv' : 'movie';
+        navigate(`/watch/${item.id}?type=${type}`);
         setDropdownOpen(false);
     };
 
