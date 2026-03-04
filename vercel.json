@@ -3,6 +3,10 @@
         {
             "source": "/fanart-api/:path*",
             "destination": "https://webservice.fanart.tv/v3/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
