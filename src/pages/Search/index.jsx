@@ -122,7 +122,7 @@ const Search = () => {
 
     // Helper to render grid
     const renderGrid = (items, isGemini = false) => (
-        <div className="search-grid">
+        <div className="search-results-grid">
             {items.map((item, index) => (
                 <div className={`search-card-wrap ${isGemini ? 'gemini-card-wrap' : ''}`} key={`search-${isGemini ? 'gemini' : 'tmdb'}-${item.id}-${index}`}>
                     <MovieCard
