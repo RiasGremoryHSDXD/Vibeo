@@ -1,0 +1,156 @@
+/* ================================================================
+   CONFIRMATION MODAL - Premium Aesthetics
+   ================================================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 440px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px inset rgba(255, 255, 255, 0.05);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--c-text);
+    margin: 0 0 1rem 0;
+}
+
+.modal-message {
+    font-size: 0.95rem;
+    color: var(--c-muted);
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0;
+}
+
+.modal-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.modal-input-group label {
+    font-size: 0.85rem;
+    color: var(--c-muted);
+}
+
+.modal-input-group label strong {
+    color: var(--c-text);
+    font-weight: 700;
+}
+
+.modal-input {
+    width: 100%;
+    background: var(--c-surface2);
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 2px rgba(var(--c-accent-rgb), 0.2);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-modal-cancel,
+.btn-modal-confirm {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    outline: none;
+}
+
+.btn-modal-cancel {
+    background: transparent;
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+}
+
+.btn-modal-cancel:hover {
+    background: var(--c-surface2);
+}
+
+.btn-modal-confirm {
+    background: var(--c-accent);
+    color: white;
+    /* Ensure text is visible depending on theme */
+}
+
+.btn-modal-confirm:hover:not(:disabled) {
+    background: var(--c-accent-lt);
+}
+
+.btn-modal-confirm.destructive {
+    background: #ef4444;
+    /* Premium red for destructive actions */
+    color: white;
+}
+
+.btn-modal-confirm.destructive:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+.btn-modal-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}

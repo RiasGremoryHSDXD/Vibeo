@@ -2,11 +2,17 @@ import React from 'react';
 import { Database, Download, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useLayout } from '@/context/LayoutContext';
+import { useUserMovies } from '@/hooks/useUserMovies';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 import './styles.css';
 
 const DataSection = () => {
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = React.useState(false);
+    const [isWatchlistModalOpen, setIsWatchlistModalOpen] = React.useState(false);
+
     const { theme, backgroundPattern, resetTheme } = useTheme();
     const { cardSize, glassLevel, showMetadata, resetLayout } = useLayout();
+    const { clearWatchHistory, clearWatchlist } = useUserMovies();
 
     const handleExport = () => {
         const settings = {
@@ -31,6 +37,20 @@ const DataSection = () => {
         if (window.confirm('Are you sure you want to reset all settings to default? This will revert your theme and layout preferences.')) {
             resetTheme();
             resetLayout();
+        }
+    };
+
+    const confirmClearHistory = async () => {
+        const success = await clearWatchHistory();
+        if (success) {
+            // Success ui could go here
+        }
+    };
+
+    const confirmClearWatchlist = async () => {
+        const success = await clearWatchlist();
+        if (success) {
+            // Success ui could go here
         }
     };
 
@@ -71,7 +91,48 @@ const DataSection = () => {
                         <RefreshCw size={16} /> Reset All
                     </button>
                 </div>
+
+                {/* Account Data Deletion - Danger Zone */}
+                <div className="data-card danger-zone">
+                    <div className="data-card-info">
+                        <h3 className="text-red-500"><AlertTriangle size={18} /> Clear Watch History</h3>
+                        <p>Wipe your entire Continue Watching list. Requires confirmation.</p>
+                    </div>
+                    <button className="btn-data btn-reset" onClick={() => setIsHistoryModalOpen(true)}>
+                        <RefreshCw size={16} /> Clear History
+                    </button>
+                </div>
+
+                <div className="data-card danger-zone">
+                    <div className="data-card-info">
+                        <h3 className="text-red-500"><AlertTriangle size={18} /> Delete Watchlist</h3>
+                        <p>Permanently empty your saved My Watchlist items.</p>
+                    </div>
+                    <button className="btn-data btn-reset" onClick={() => setIsWatchlistModalOpen(true)}>
+                        <RefreshCw size={16} /> Empty Watchlist
+                    </button>
+                </div>
             </div>
+
+            {/* Custom Premium Modals */}
+            <ConfirmationModal
+                isOpen={isHistoryModalOpen}
+                onClose={() => setIsHistoryModalOpen(false)}
+                onConfirm={confirmClearHistory}
+                title="Clear Watch History"
+                message="Are you sure you want to wipe your entire 'Continue Watching' history? This action cannot be undone and your place in all media will be lost."
+                requireInput="DELETE"
+                confirmText="Yes, Wipe History"
+            />
+
+            <ConfirmationModal
+                isOpen={isWatchlistModalOpen}
+                onClose={() => setIsWatchlistModalOpen(false)}
+                onConfirm={confirmClearWatchlist}
+                title="Delete Watchlist"
+                message="Are you sure you want to completely empty your saved Watchlist? All saved movies will be removed permanently."
+                confirmText="Yes, Empty Watchlist"
+            />
         </div>
     );
 };
