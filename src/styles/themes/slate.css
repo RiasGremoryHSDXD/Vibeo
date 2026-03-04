@@ -1,0 +1,17 @@
+/* Slate Theme */
+[data-theme="slate"] {
+    --c-bg: #020617;
+    --c-bg2: #080f1e;
+    --c-surface: #0f172a;
+    --c-surface2: #1e293b;
+    --c-surface3: #334155;
+    --c-border: rgba(56, 189, 248, 0.05);
+    --c-border2: rgba(56, 189, 248, 0.1);
+
+    --c-accent: #38bdf8;
+    --c-accent-lt: #7dd3fc;
+    --c-accent-glow: rgba(56, 189, 248, 0.4);
+
+    --c-text: #f1f5f9;
+    --c-text2: #94a3b8;
+}
