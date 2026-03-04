@@ -1,81 +1,127 @@
-import { useState, useEffect } from 'react';
+/**
+ * useBrowseMovies.js
+ * ═══════════════════════════════════════════════════════════════
+ * Infinite scroll hook for the Browse page.
+ * Uses React Query's useInfiniteQuery for paginated infinite loading.
+ * Capped at 10 pages (~200 movies) to prevent memory issues.
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { fetchTMDB } from '../api/tmdbClient';
-import { useAuth } from '../context/AuthContext';
 
-export const useBrowseMovies = (categoryId, page = 1) => {
-    const { favoriteMovies } = useAuth();
-    const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [totalPages, setTotalPages] = useState(1);
-    const [title, setTitle] = useState('');
+const MAX_PAGES = 10; // Safety cap to prevent memory issues
 
-    useEffect(() => {
-        let isMounted = true;
-        setLoading(true);
+/**
+ * TMDB Genre IDs
+ */
+export const GENRE_MAP = [
+    { id: '', label: 'All Genres' },
+    { id: '28', label: 'Action' },
+    { id: '12', label: 'Adventure' },
+    { id: '16', label: 'Animation' },
+    { id: '35', label: 'Comedy' },
+    { id: '80', label: 'Crime' },
+    { id: '99', label: 'Documentary' },
+    { id: '18', label: 'Drama' },
+    { id: '10751', label: 'Family' },
+    { id: '14', label: 'Fantasy' },
+    { id: '36', label: 'History' },
+    { id: '27', label: 'Horror' },
+    { id: '10402', label: 'Music' },
+    { id: '9648', label: 'Mystery' },
+    { id: '10749', label: 'Romance' },
+    { id: '878', label: 'Science Fiction' },
+    { id: '53', label: 'Thriller' },
+    { id: '10752', label: 'War' },
+    { id: '37', label: 'Western' },
+];
 
-        const fetchCategory = async () => {
-            let endpoint = '';
-            let params = { page };
-            let displayTitle = '';
+/**
+ * Sort options map to different TMDB endpoints/params
+ */
+export const SORT_OPTIONS = [
+    { id: 'popular', label: 'Popular', endpoint: '/movie/popular' },
+    { id: 'top_rated', label: 'Top Rated', endpoint: '/movie/top_rated' },
+    { id: 'now_playing', label: 'Now Playing', endpoint: '/movie/now_playing' },
+    { id: 'upcoming', label: 'Upcoming', endpoint: '/movie/upcoming' },
+    { id: 'trending', label: 'Trending', endpoint: '/trending/movie/week' },
+];
 
-            switch (categoryId) {
-                case 'trending':
-                    endpoint = '/trending/movie/week';
-                    displayTitle = 'Trending This Week';
+export const useBrowseMovies = (sortId = 'popular', genreId = '') => {
+    const sortOption = SORT_OPTIONS.find(s => s.id === sortId) || SORT_OPTIONS[0];
+
+    // If a genre is selected, use /discover/movie to filter by genre
+    const useDiscover = !!genreId;
+    const endpoint = useDiscover ? '/discover/movie' : sortOption.endpoint;
+
+    const buildParams = (page) => {
+        const params = { page };
+        if (useDiscover) {
+            params.with_genres = genreId;
+            switch (sortId) {
+                case 'popular':
+                    params.sort_by = 'popularity.desc';
                     break;
-                case 'top-rated':
-                    endpoint = '/movie/top_rated';
-                    displayTitle = 'Top Rated';
+                case 'top_rated':
+                    params.sort_by = 'vote_average.desc';
+                    params['vote_count.gte'] = 200;
                     break;
-                case 'action':
-                    endpoint = '/discover/movie';
-                    params.with_genres = '28';
-                    displayTitle = 'Action & Adventure';
+                case 'now_playing':
+                    params.sort_by = 'primary_release_date.desc';
+                    params['primary_release_date.lte'] = new Date().toISOString().split('T')[0];
+                    params['primary_release_date.gte'] = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
                     break;
-                case 'drama':
-                    endpoint = '/discover/movie';
-                    params.with_genres = '18';
-                    displayTitle = 'Drama';
-                    break;
-                case 'new-release':
-                    endpoint = '/movie/now_playing';
-                    displayTitle = 'New Releases';
-                    break;
-                case 'mood-match':
-                    displayTitle = 'AI Mood Matches';
-                    endpoint = '/discover/movie';
-                    if (favoriteMovies && favoriteMovies.length > 0) {
-                        const counts = {};
-                        favoriteMovies.forEach(m => (m.genre_ids || []).forEach(g => counts[g] = (counts[g] || 0) + 1));
-                        const topG = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3).join(',');
-                        if (topG) params.with_genres = topG;
-                    }
+                case 'upcoming':
+                    params.sort_by = 'primary_release_date.asc';
+                    params['primary_release_date.gte'] = new Date().toISOString().split('T')[0];
                     break;
                 default:
-                    endpoint = '/trending/movie/week';
-                    displayTitle = 'Browse Movies';
+                    params.sort_by = 'popularity.desc';
             }
+        }
+        return params;
+    };
 
-            try {
-                const data = await fetchTMDB(endpoint, params);
-                if (isMounted && data) {
-                    setMovies(data.results || []);
-                    setTotalPages(Math.min(data.total_pages || 1, 500)); // TMDB max page limit is 500
-                    setTitle(displayTitle);
-                }
-            } catch (error) {
-                console.error('Error fetching browse movies:', error);
-            } finally {
-                if (isMounted) setLoading(false);
-            }
-        };
+    const {
+        data,
+        isLoading: loading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+        error,
+    } = useInfiniteQuery({
+        queryKey: ['browse', sortId, genreId],
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = await fetchTMDB(endpoint, buildParams(pageParam));
+            return {
+                results: res?.results || [],
+                page: pageParam,
+                total_pages: res?.total_pages || 1,
+            };
+        },
+        getNextPageParam: (lastPage) => {
+            const nextPage = lastPage.page + 1;
+            if (nextPage > Math.min(lastPage.total_pages, MAX_PAGES)) return undefined;
+            return nextPage;
+        },
+        staleTime: 1000 * 60 * 5,
+    });
 
-        fetchCategory();
+    // Flatten all pages into a single movie array
+    const movies = data?.pages?.flatMap(p => p.results) || [];
 
-        return () => {
-            isMounted = false;
-        };
-    }, [categoryId, page, favoriteMovies]);
+    const title = genreId
+        ? `${GENRE_MAP.find(g => g.id === genreId)?.label || 'Movies'} — ${sortOption.label}`
+        : sortOption.label;
 
-    return { movies, loading, totalPages, title };
+    return {
+        movies,
+        loading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage: !!hasNextPage,
+        title,
+        error,
+    };
 };
