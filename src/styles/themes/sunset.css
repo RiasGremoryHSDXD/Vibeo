@@ -1,0 +1,12 @@
+[data-theme="sunset"] {
+    --c-bg: #180909;
+    --c-bg2: #250e0e;
+    --c-surface: #321414;
+    --c-surface2: #451a1a;
+    --c-surface3: #5c2323;
+    --c-border: rgba(249, 115, 22, 0.12);
+    --c-border2: rgba(249, 115, 22, 0.25);
+    --c-accent: #f97316;
+    --c-accent-lt: #fb923c;
+    --c-accent-glow: rgba(249, 115, 22, 0.4);
+}
