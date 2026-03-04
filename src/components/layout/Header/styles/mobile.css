@@ -1,5 +1,5 @@
 /* ================================================================
-   MOBILE RESPONSIVENESS (Max Width: 850px)
+   MOBILE RESPONSIVENESS (Max Width: 1100px)
    ================================================================ */
 
 .topbar__mobile-toggle {
@@ -36,7 +36,7 @@
     transform: translateY(-9px) rotate(-45deg);
 }
 
-@media (max-width: 850px) {
+@media (max-width: 1100px) {
     .topbar__inner {
         padding: 0 1rem;
         gap: 0.75rem;
@@ -111,7 +111,7 @@
         border-radius: 8px;
     }
 
-    /* Shrink the search bar to prioritize logo / avatar */
+    /* Shrink the search bar slightly on tablet */
     .topbar__search {
         padding: 6px 10px;
         margin-left: auto;
@@ -120,27 +120,18 @@
     }
 
     .topbar__search input {
-        width: 100px;
+        width: 120px;
+        transition: width 0.2s ease;
     }
 
     .topbar__search:focus-within {
-        position: absolute;
-        top: 50%;
-        left: 1rem;
-        right: 4rem;
-        /* Leave room for hamburger toggle */
-        transform: translateY(-50%);
         background: var(--c-bg);
-        /* use a solid bg so it covers the logo nicely */
-        z-index: 1100;
         border: 1px solid var(--c-accent-lt);
-        border-radius: var(--r-pill);
-        padding: 8px 14px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
     .topbar__search:focus-within input {
-        width: 100%;
+        width: 180px;
         font-size: 0.95rem;
     }
 }
@@ -179,7 +170,7 @@
     }
 }
 
-@media (max-width: 850px) {
+@media (max-width: 1100px) {
 
     /* Flatten the user dropdown in the mobile menu */
     .topbar__mobile-actions .topbar__user-container {
