@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 
 const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/w342';
 const FALLBACK_IMG = 'https://placehold.co/220x330/1a1a2e/6b6b8a?text=No+Poster';
+import { useLayout } from '@/context/LayoutContext';
 import './styles.css';
 
 const MovieCard = ({ movie, onClick, animationDelay = '0ms', showMatchBadge = false }) => {
+    const { showMetadata } = useLayout();
     const [imgError, setImgError] = useState(false);
     const [hovered, setHovered] = useState(false);
 
@@ -60,7 +62,7 @@ const MovieCard = ({ movie, onClick, animationDelay = '0ms', showMatchBadge = fa
                 </div>
 
                 {/* ── Rating badge (top-right corner like Yorumi) ── */}
-                {vote_average > 0 && (
+                {showMetadata?.rating && vote_average > 0 && (
                     <div className="mc__rating" style={{ background: ratingColor }}>
                         {Number(vote_average).toFixed(1)}
                     </div>
@@ -77,7 +79,7 @@ const MovieCard = ({ movie, onClick, animationDelay = '0ms', showMatchBadge = fa
             {/* ── Card footer info ── */}
             <div className="mc__info">
                 <p className="mc__title">{displayTitle}</p>
-                {year && <span className="mc__year">{year}</span>}
+                {showMetadata?.year && year && <span className="mc__year">{year}</span>}
             </div>
         </article>
     );
