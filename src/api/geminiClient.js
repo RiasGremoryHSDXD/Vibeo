@@ -11,6 +11,35 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Helper function to normalize queries for better cache matching
+export const normalizeSearchQuery = (query) => {
+    // 1. Convert to lowercase
+    let normalized = query.toLowerCase();
+
+    // 2. Remove punctuation (keep only alphanumeric and spaces)
+    normalized = normalized.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+
+    // 3. Remove common stop words
+    const stopWords = new Set([
+        "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
+        "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",
+        "such", "that", "the", "their", "then", "there", "these", "they",
+        "this", "to", "was", "will", "with", "has", "have", "had", "him",
+        "her", "he", "she", "who", "which", "what", "where", "when", "why",
+        "how", "all", "any", "both", "each", "few", "more", "most", "other",
+        "some", "such", "than", "too", "very", "can", "will", "just", "should", "now"
+    ]);
+
+    // Split into words, filter out stop words, and sort alphabetically
+    const words = normalized.split(" ").filter(word => word.length > 0 && !stopWords.has(word));
+
+    // Sort words alphabetically so "kid 9 tails code" matches "code kid 9 tails"
+    words.sort();
+
+    // Re-join into a single string
+    return words.join(" ");
+};
+
 export const fetchGeminiRecommendations = async (query) => {
     try {
         if (!apiKey) {
@@ -18,7 +47,9 @@ export const fetchGeminiRecommendations = async (query) => {
         }
 
         // --- CACHE CHECK ---
-        const normalizedQuery = query.trim().toLowerCase();
+        const normalizedQuery = normalizeSearchQuery(query);
+        console.log(`[Gemini Cache] Original: "${query}" -> Normalized Key: "${normalizedQuery}"`);
+
         const cacheKey = `gemini_search_${normalizedQuery}`;
         const cachedResult = sessionStorage.getItem(cacheKey);
 

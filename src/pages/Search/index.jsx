@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import MovieCard from '@/components/common/MovieCard';
 import { fetchTMDB } from '@/api/tmdbClient';
-import { fetchGeminiRecommendations } from '@/api/geminiClient';
+import { fetchGeminiRecommendations, normalizeSearchQuery } from '@/api/geminiClient';
 import './styles.css';
 
 const Search = () => {
@@ -33,8 +33,9 @@ const Search = () => {
             }
 
             // --- CACHE CHECK (TMDB + GEMINI FULL DATA) ---
-            const cacheKeyTMDB = `tmdb_search_${query.trim().toLowerCase()}`;
-            const cacheKeyGeminiData = `gemini_data_${query.trim().toLowerCase()}`;
+            const normalizedQueryForCache = normalizeSearchQuery(query);
+            const cacheKeyTMDB = `tmdb_search_${normalizedQueryForCache}`;
+            const cacheKeyGeminiData = `gemini_data_${normalizedQueryForCache}`;
 
             const cachedTMDB = sessionStorage.getItem(cacheKeyTMDB);
             const cachedGeminiData = sessionStorage.getItem(cacheKeyGeminiData);
