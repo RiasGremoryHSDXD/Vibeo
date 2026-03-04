@@ -1,0 +1,33 @@
+/* Matrix Theme (Animated) */
+[data-theme="matrix"] {
+    --c-bg: #000000;
+    --c-bg2: #050505;
+    --c-surface: #0a110a;
+    --c-surface2: #0e180e;
+    --c-surface3: #111c11;
+
+    --c-border: rgba(0, 255, 65, 0.15);
+    --c-border2: rgba(0, 255, 65, 0.3);
+
+    --c-accent: #00ff41;
+    --c-accent-lt: #88ff88;
+    --c-accent-glow: rgba(0, 255, 65, 0.5);
+
+    --c-text: #e0f2e0;
+    --c-text2: #008f11;
+}
+
+/* Matrix: CRT Scanline Overlay */
+[data-theme="matrix"]::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
