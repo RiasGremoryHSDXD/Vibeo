@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { fetchTMDB } from '@/api/tmdbClient';
+import { getUserSearchHistory, saveUserSearchHistory, removeUserSearchHistory } from '@/api/geminiClient';
 import { TMDB_IMAGE_BASE } from '@/config/constants';
 import './styles.css';
 
@@ -14,14 +15,26 @@ const Header = () => {
     const [search, setSearch] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Search dropdown state
+    // Search dropdown & History state
     const [suggestions, setSuggestions] = useState([]);
+    const [searchHistory, setSearchHistory] = useState([]);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searching, setSearching] = useState(false);
     const debounceTimer = useRef(null);
     const wrapperRef = useRef(null);
 
     const isOnboardingPage = location.pathname === '/onboarding';
+
+    /* ── Load Search History on Mount ── */
+    useEffect(() => {
+        if (currentUser) {
+            getUserSearchHistory(currentUser.uid).then(history => {
+                setSearchHistory(history);
+            });
+        } else {
+            setSearchHistory([]);
+        }
+    }, [currentUser]);
 
     /* ── Live search (debounced) ── */
     useEffect(() => {
@@ -74,10 +87,36 @@ const Header = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (search.trim()) {
+            // Save to Firebase history asynchronously (fire and forget)
+            if (currentUser) {
+                saveUserSearchHistory(currentUser.uid, search.trim());
+                // Optimistically update local state so they see it right away next time
+                setSearchHistory(prev => {
+                    const filtered = prev.filter(item => item.query !== search.trim().toLowerCase());
+                    return [{ id: 'temp-' + Date.now(), query: search.trim().toLowerCase() }, ...filtered].slice(0, 10);
+                });
+            }
+
             navigate(`/search?q=${encodeURIComponent(search.trim())}`);
             setDropdownOpen(false);
             setIsMobileMenuOpen(false);
         }
+    };
+
+    const handleHistoryClick = (queryText) => {
+        setSearch(queryText);
+        if (currentUser) saveUserSearchHistory(currentUser.uid, queryText); // bump timestamp
+        navigate(`/search?q=${encodeURIComponent(queryText)}`);
+        setDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+    };
+
+    const handleRemoveHistory = async (e, docId) => {
+        e.stopPropagation();
+        if (currentUser && docId && !docId.startsWith('temp-')) {
+            await removeUserSearchHistory(currentUser.uid, docId);
+        }
+        setSearchHistory(prev => prev.filter(item => item.id !== docId));
     };
 
     const goToItem = (item) => {
@@ -266,7 +305,10 @@ const Header = () => {
                                             placeholder="Search titles…"
                                             value={search}
                                             onChange={e => setSearch(e.target.value)}
-                                            onFocus={() => search.trim() && suggestions.length > 0 && setDropdownOpen(true)}
+                                            onFocus={() => {
+                                                if (search.trim() && suggestions.length > 0) setDropdownOpen(true);
+                                                if (!search.trim() && searchHistory.length > 0) setDropdownOpen(true);
+                                            }}
                                             aria-label="Search movies"
                                             autoComplete="off"
                                         />
@@ -288,54 +330,93 @@ const Header = () => {
                                     {/* ── Dropdown ── */}
                                     {dropdownOpen && (
                                         <div className="search-dropdown">
-                                            {suggestions.length === 0 && !searching ? (
-                                                <div className="search-dropdown__empty">No results found</div>
-                                            ) : (
-                                                <>
+                                            {/* Show Recent Searches if input is empty */}
+                                            {!search.trim() && searchHistory.length > 0 ? (
+                                                <div className="search-dropdown__history">
+                                                    <div className="search-dropdown__history-header">
+                                                        <span>Recent Searches</span>
+                                                    </div>
                                                     <ul className="search-dropdown__list">
-                                                        {suggestions.map(item => (
-                                                            <li key={item.id}>
+                                                        {searchHistory.map(item => (
+                                                            <li key={item.id} className="search-history-item-wrap">
                                                                 <button
-                                                                    className="search-dropdown__item"
-                                                                    onClick={() => goToItem(item)}
+                                                                    className="search-dropdown__item search-dropdown__history-item"
+                                                                    onClick={() => handleHistoryClick(item.query)}
                                                                     type="button"
                                                                 >
-                                                                    {item.poster_path ? (
-                                                                        <img
-                                                                            src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
-                                                                            alt={item.title || item.name}
-                                                                            className="search-dropdown__poster"
-                                                                        />
-                                                                    ) : (
-                                                                        <div className="search-dropdown__poster search-dropdown__poster--placeholder">
-                                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                                                <rect x="2" y="3" width="20" height="14" rx="2" />
-                                                                                <polyline points="8 21 12 17 16 21" />
-                                                                                <line x1="12" y1="17" x2="12" y2="21" />
-                                                                            </svg>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="search-dropdown__info">
-                                                                        <span className="search-dropdown__title">{item.title || item.name}</span>
-                                                                        <span className="search-dropdown__meta">
-                                                                            {getYear(item) && <span>{getYear(item)}</span>}
-                                                                            <span className="search-dropdown__type">{getTypeLabel(item)}</span>
-                                                                        </span>
-                                                                    </div>
+                                                                    <svg className="history-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                                                        <circle cx="12" cy="12" r="10" />
+                                                                        <polyline points="12 6 12 12 16 14" />
+                                                                    </svg>
+                                                                    <span className="search-dropdown__title">{item.query}</span>
+                                                                </button>
+                                                                <button
+                                                                    className="history-remove-btn"
+                                                                    onClick={(e) => handleRemoveHistory(e, item.id)}
+                                                                    title="Remove from history"
+                                                                >
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                                                    </svg>
                                                                 </button>
                                                             </li>
                                                         ))}
                                                     </ul>
-                                                    <button
-                                                        className="search-dropdown__view-all"
-                                                        onClick={viewAllResults}
-                                                        type="button"
-                                                    >
-                                                        View All Results
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                            <polyline points="9 18 15 12 9 6" />
-                                                        </svg>
-                                                    </button>
+                                                </div>
+                                            ) : (
+                                                /* Show TMDB Live Suggestions if they typed something */
+                                                <>
+                                                    {suggestions.length === 0 && !searching ? (
+                                                        <div className="search-dropdown__empty">No results found</div>
+                                                    ) : (
+                                                        <>
+                                                            <ul className="search-dropdown__list">
+                                                                {suggestions.map(item => (
+                                                                    <li key={item.id}>
+                                                                        <button
+                                                                            className="search-dropdown__item"
+                                                                            onClick={() => goToItem(item)}
+                                                                            type="button"
+                                                                        >
+                                                                            {item.poster_path ? (
+                                                                                <img
+                                                                                    src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
+                                                                                    alt={item.title || item.name}
+                                                                                    className="search-dropdown__poster"
+                                                                                />
+                                                                            ) : (
+                                                                                <div className="search-dropdown__poster search-dropdown__poster--placeholder">
+                                                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                                                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                                                        <polyline points="8 21 12 17 16 21" />
+                                                                                        <line x1="12" y1="17" x2="12" y2="21" />
+                                                                                    </svg>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="search-dropdown__info">
+                                                                                <span className="search-dropdown__title">{item.title || item.name}</span>
+                                                                                <span className="search-dropdown__meta">
+                                                                                    {getYear(item) && <span>{getYear(item)}</span>}
+                                                                                    <span className="search-dropdown__type">{getTypeLabel(item)}</span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </button>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                            <button
+                                                                className="search-dropdown__view-all"
+                                                                onClick={viewAllResults}
+                                                                type="button"
+                                                            >
+                                                                View All Results
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <polyline points="9 18 15 12 9 6" />
+                                                                </svg>
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </>
                                             )}
                                         </div>

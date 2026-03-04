@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { collection, query as firestoreQuery, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, query as firestoreQuery, where, getDocs, addDoc, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import { stopWords } from "../utils/stopWords";
 
@@ -136,5 +136,78 @@ export const fetchGeminiRecommendations = async (query) => {
     } catch (error) {
         console.error("Gemini API Error:", error);
         return []; // Return an empty array on failure so it doesn't break the app
+    }
+};
+
+// ==========================================
+// USER SEARCH HISTORY API
+// ==========================================
+
+export const saveUserSearchHistory = async (userId, query) => {
+    if (!userId || !query || !query.trim()) return;
+
+    try {
+        const historyRef = collection(db, "users", userId, "search_history");
+
+        // Check if this exact query already exists to avoid duplicates
+        const q = firestoreQuery(historyRef, where("query", "==", query.trim().toLowerCase()));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+            // Already exists, we could optionally update the timestamp here to bump it to the top
+            const docId = snapshot.docs[0].id;
+            // For now, we'll just delete the old one and let it recreate below so it has the freshest timestamp
+            // or simply return out. Deleting and recreating is easiest to bump to top.
+            await deleteDoc(doc(db, "users", userId, "search_history", docId));
+        }
+
+        // Add the new search entry
+        await addDoc(historyRef, {
+            query: query.trim().toLowerCase(),
+            timestamp: new Date()
+        });
+
+        // --- ENFORCE MAX HISTORY LIMIT (Keep only last 10) ---
+        const limitQuery = firestoreQuery(historyRef, orderBy("timestamp", "desc"));
+        const limitSnapshot = await getDocs(limitQuery);
+
+        if (limitSnapshot.size > 10) {
+            // Delete all documents beyond the first 10
+            const docsToDelete = limitSnapshot.docs.slice(10);
+            for (const docSnap of docsToDelete) {
+                await deleteDoc(doc(db, "users", userId, "search_history", docSnap.id));
+            }
+        }
+
+    } catch (error) {
+        console.error("Error saving user search history:", error);
+    }
+};
+
+export const getUserSearchHistory = async (userId) => {
+    if (!userId) return [];
+
+    try {
+        const historyRef = collection(db, "users", userId, "search_history");
+        const q = firestoreQuery(historyRef, orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error("Error fetching user search history:", error);
+        return [];
+    }
+};
+
+export const removeUserSearchHistory = async (userId, docId) => {
+    if (!userId || !docId) return;
+
+    try {
+        await deleteDoc(doc(db, "users", userId, "search_history", docId));
+    } catch (error) {
+        console.error("Error removing user search history:", error);
     }
 };
