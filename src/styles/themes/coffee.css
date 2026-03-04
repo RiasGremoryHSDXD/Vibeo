@@ -1,0 +1,12 @@
+[data-theme="coffee"] {
+    --c-bg: #1a1412;
+    --c-bg2: #241c19;
+    --c-surface: #2d231f;
+    --c-surface2: #382c27;
+    --c-surface3: #4a3a34;
+    --c-border: rgba(212, 163, 115, 0.08);
+    --c-border2: rgba(212, 163, 115, 0.15);
+    --c-accent: #d4a373;
+    --c-accent-lt: #faedcd;
+    --c-accent-glow: rgba(212, 163, 115, 0.3);
+}
