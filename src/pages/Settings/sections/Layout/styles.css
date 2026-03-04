@@ -1,0 +1,220 @@
+/* Layout Section Styles */
+.layout-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.settings-group h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--c-text);
+    margin: 0;
+}
+
+.settings-group p {
+    font-size: 0.85rem;
+    color: var(--c-text2);
+    margin: -0.5rem 0 0.5rem 0;
+}
+
+/* Card Size Grid */
+.card-size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.size-option-card {
+    background: var(--c-surface);
+    border: 1px solid var(--c-surface3);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.size-option-card:hover {
+    border-color: var(--c-text2);
+    background: var(--c-surface2);
+}
+
+.size-option-card.active {
+    border-color: var(--c-accent);
+    background: var(--c-accent-glow);
+}
+
+.size-preview-box {
+    height: 120px;
+    background: var(--c-bg2);
+    border-radius: 6px;
+    border: 1px dashed var(--c-surface3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Preview Scalers */
+.preview-inner {
+    background: var(--c-accent);
+    border-radius: 4px;
+    opacity: 0.3;
+}
+
+.size-small .preview-inner {
+    width: 40%;
+    height: 40%;
+}
+
+.size-medium .preview-inner {
+    width: 60%;
+    height: 60%;
+}
+
+.size-large .preview-inner {
+    width: 80%;
+    height: 80%;
+}
+
+.size-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.size-info strong {
+    font-size: 0.9rem;
+    color: var(--c-text);
+}
+
+.size-info span {
+    font-size: 0.75rem;
+    color: var(--c-text2);
+}
+
+.check-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--c-accent);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0.8);
+}
+
+/* Toggle Group (Metadata) */
+.metadata-toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.toggle-item {
+    background: var(--c-surface);
+    border: 1px solid var(--c-surface3);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-item:hover {
+    background: var(--c-surface2);
+}
+
+.toggle-item.active {
+    background: var(--c-accent-glow);
+    border-color: var(--c-accent);
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--c-text);
+}
+
+.toggle-switch {
+    width: 36px;
+    height: 18px;
+    background: var(--c-bg2);
+    border-radius: 20px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--c-text2);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.active .toggle-switch {
+    background: var(--c-accent);
+}
+
+.active .toggle-switch::after {
+    left: 20px;
+    background: white;
+}
+
+/* Glass Level Selector */
+.glass-selector {
+    display: flex;
+    background: var(--c-surface);
+    border: 1px solid var(--c-surface3);
+    border-radius: 12px;
+    padding: 0.4rem;
+    gap: 0.4rem;
+}
+
+.glass-option {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--c-text2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.glass-option:hover {
+    background: var(--c-surface2);
+    color: var(--c-text);
+}
+
+.glass-option.active {
+    background: var(--c-surface3);
+    color: var(--c-text);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
