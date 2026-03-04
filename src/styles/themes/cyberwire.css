@@ -1,0 +1,12 @@
+[data-theme="cyberwire"] {
+    --c-bg: #050505;
+    --c-bg2: #0a0a0a;
+    --c-surface: #111;
+    --c-surface2: #1a1a1a;
+    --c-surface3: #222;
+    --c-border: rgba(236, 72, 153, 0.15);
+    --c-border2: rgba(236, 72, 153, 0.3);
+    --c-accent: #ec4899;
+    --c-accent-lt: #f472b6;
+    --c-accent-glow: rgba(236, 72, 153, 0.5);
+}
