@@ -23,9 +23,9 @@
 
 .browse-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--card-min-width) + 40px), 1fr));
     gap: 1.5rem;
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
 .browse-card-wrap {
@@ -35,16 +35,16 @@
     aspect-ratio: 2/3;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .browse-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(calc(var(--card-min-width) + 60px), 1fr));
         gap: 1.75rem;
     }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1400px) {
     .browse-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(calc(var(--card-min-width) + 80px), 1fr));
         gap: 2rem;
     }
 }
