@@ -168,12 +168,14 @@ export const querySmartSearchAI = async (query) => {
 
     // Helper to print a clean table in the console for developers
     const logAction = (source, meaning) => {
-        console.table([{
-            "Search Query": query,
-            "Database Lookup Match": normalizedQuery,
-            "Data Source": source,
-            "Explanation": meaning
-        }]);
+        const rowLabel = query ? `"${query}"` : "Empty Query";
+        console.table({
+            [rowLabel]: {
+                "Database Lookup Match": normalizedQuery,
+                "Data Source": source,
+                "Explanation": meaning
+            }
+        });
     };
 
     // 1. Check Session Cache
