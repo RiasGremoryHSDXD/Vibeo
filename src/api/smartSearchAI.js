@@ -170,9 +170,9 @@ export const querySmartSearchAI = async (query) => {
     const logAction = (source, meaning) => {
         console.table([{
             "Search Query": query,
-            "Normalized Key": normalizedQuery,
+            "Database Lookup Match": normalizedQuery,
             "Data Source": source,
-            "Developer Meaning": meaning
+            "Explanation": meaning
         }]);
     };
 
