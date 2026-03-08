@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { fetchTMDB } from '@/api/tmdbClient';
 import { getUserSearchHistory, saveUserSearchHistory, removeUserSearchHistory } from '@/api/geminiClient';
 import { TMDB_IMAGE_BASE } from '@/config/constants';
+import StreakCounter from '@/components/common/StreakCounter';
 import './styles.css';
 
 const PREVIEW_COUNT = 5;
@@ -87,10 +88,8 @@ const Header = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (search.trim()) {
-            // Save to Firebase history asynchronously (fire and forget)
             if (currentUser) {
                 saveUserSearchHistory(currentUser.uid, search.trim());
-                // Optimistically update local state so they see it right away next time
                 setSearchHistory(prev => {
                     const filtered = prev.filter(item => item.query !== search.trim().toLowerCase());
                     return [{ id: 'temp-' + Date.now(), query: search.trim().toLowerCase() }, ...filtered].slice(0, 10);
@@ -105,7 +104,7 @@ const Header = () => {
 
     const handleHistoryClick = (queryText) => {
         setSearch(queryText);
-        if (currentUser) saveUserSearchHistory(currentUser.uid, queryText); // bump timestamp
+        if (currentUser) saveUserSearchHistory(currentUser.uid, queryText);
         navigate(`/search?q=${encodeURIComponent(queryText)}`);
         setDropdownOpen(false);
         setIsMobileMenuOpen(false);
@@ -132,7 +131,6 @@ const Header = () => {
         }
     };
 
-    /* ── Helper: year from date string ── */
     const getYear = (item) => {
         const date = item.release_date || item.first_air_date || '';
         return date ? date.slice(0, 4) : '';
@@ -145,9 +143,9 @@ const Header = () => {
 
     const renderActions = (className) => (
         <div className={className}>
-            {/* Authentication Section */}
             {currentUser ? (
                 <div className="topbar__user-container">
+                    <StreakCounter className="header-streak" />
                     <img
                         src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=random`}
                         alt={currentUser.displayName || 'User Profile'}
@@ -191,10 +189,7 @@ const Header = () => {
                     </div>
                 </div>
             ) : (
-                <button
-                    className="topbar__login-btn"
-                    onClick={loginWithGoogle}
-                >
+                <button className="topbar__login-btn" onClick={loginWithGoogle}>
                     Login
                 </button>
             )}
@@ -204,8 +199,6 @@ const Header = () => {
     return (
         <header className="topbar" role="banner">
             <div className="topbar__inner">
-
-                {/* ── Logo ── */}
                 <button className="topbar__logo" onClick={() => navigate('/')} aria-label="Vibeo Home">
                     <img src="/vibeo.png" alt="Vibeo" className="topbar__logo-img" />
                     <span className="topbar__logo-text">
@@ -214,7 +207,6 @@ const Header = () => {
                     </span>
                 </button>
 
-                {/* ── Nav links & Mobile Drawer ── */}
                 {!isOnboardingPage && (
                     <>
                         <nav className={`topbar__nav ${isMobileMenuOpen ? 'mobile-open' : ''}`} aria-label="Site Navigation">
@@ -226,7 +218,6 @@ const Header = () => {
                                     { label: 'Taste Matcher', path: '/ai-match' },
                                 ].map(link => {
                                     const isActive = location.pathname === link.path || (link.path.startsWith('/browse') && location.pathname.startsWith('/browse'));
-
                                     return (
                                         <button
                                             key={link.label}
@@ -241,29 +232,23 @@ const Header = () => {
                                     );
                                 })}
                             </div>
-
-                            {/* Mobile Drawer Actions (Auth only, no Theme) */}
-                            {renderActions("topbar__mobile-actions", true)}
+                            {renderActions("topbar__mobile-actions")}
                         </nav>
 
-                        {/* ── Right side: search + actions + toggle ── */}
                         <div className="topbar__right">
-                            {/* Search box with dropdown */}
                             {!isOnboardingPage && (
                                 <div className="topbar__search-wrapper" ref={wrapperRef}>
                                     <form
                                         className={`topbar__search ${dropdownOpen ? 'dropdown-active' : ''}`}
                                         onSubmit={handleSearch}
                                     >
-                                        {/* Search icon / spinner wrapped in label for focus toggle */}
                                         <label htmlFor="mobile-search-input" className="topbar__search-icon-label">
                                             {searching ? (
                                                 <svg className="search-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                                     <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round" />
                                                 </svg>
                                             ) : (
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                                    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                                                     <circle cx="11" cy="11" r="8" />
                                                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                                 </svg>
@@ -297,10 +282,8 @@ const Header = () => {
                                         )}
                                     </form>
 
-                                    {/* ── Dropdown ── */}
                                     {dropdownOpen && (
                                         <div className="search-dropdown">
-                                            {/* Show Recent Searches if input is empty */}
                                             {!search.trim() && searchHistory.length > 0 ? (
                                                 <div className="search-dropdown__history">
                                                     <div className="search-dropdown__history-header">
@@ -335,7 +318,6 @@ const Header = () => {
                                                     </ul>
                                                 </div>
                                             ) : (
-                                                /* Show TMDB Live Suggestions if they typed something */
                                                 <>
                                                     {suggestions.length === 0 && !searching ? (
                                                         <div className="search-dropdown__empty">No results found</div>
@@ -375,11 +357,7 @@ const Header = () => {
                                                                     </li>
                                                                 ))}
                                                             </ul>
-                                                            <button
-                                                                className="search-dropdown__view-all"
-                                                                onClick={viewAllResults}
-                                                                type="button"
-                                                            >
+                                                            <button className="search-dropdown__view-all" onClick={viewAllResults} type="button">
                                                                 View All Results
                                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                                     <polyline points="9 18 15 12 9 6" />
@@ -394,7 +372,6 @@ const Header = () => {
                                 </div>
                             )}
 
-                            {/* Desktop Actions (Theme & Auth) */}
                             {renderActions("topbar__desktop-actions")}
 
                             <button

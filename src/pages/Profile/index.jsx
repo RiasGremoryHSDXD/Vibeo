@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import MovieCard from '@/components/common/MovieCard';
+import ProfileStreak from '@/components/common/ProfileStreak';
+import CinephileGrid from '@/components/common/CinephileGrid';
 import { useUserMovies } from '@/hooks/useUserMovies';
 import { useNavigate } from 'react-router-dom';
 import { formatWatchTime } from '@/utils/timeUtils';
@@ -53,6 +55,7 @@ const Profile = () => {
                                         <p>Welcome back to your hub</p>
                                     </div>
 
+
                                     <div className="hub-quick-stats">
                                         <div className="hub-stat-mini">
                                             <span className="mini-label">Time Watched</span>
@@ -78,6 +81,8 @@ const Profile = () => {
                                     totalWatchTime={totalWatchTime}
                                     isHeaderVariant={true}
                                 />
+                                <ProfileStreak className="hub-streak-card" />
+                                <CinephileGrid className="hub-activity-grid" />
                             </div>
                         </div>
                     </div>

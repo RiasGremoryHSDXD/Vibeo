@@ -1,0 +1,270 @@
+.profile-streak-card {
+    width: 100%;
+    max-width: 900px;
+    margin: 1rem auto;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-streak-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Tier Transitions */
+.tier-basic {
+    --streak-color: #ff8c00;
+    --streak-glow: rgba(255, 140, 0, 0.3);
+}
+
+.tier-elite {
+    --streak-color: #a855f7;
+    --streak-glow: rgba(168, 85, 247, 0.4);
+}
+
+.tier-master {
+    --streak-color: #3b82f6;
+    --streak-glow: rgba(59, 130, 246, 0.5);
+}
+
+/* Main Display */
+.streak-main-display {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.streak-fire-platform {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fire-container {
+    position: relative;
+    color: var(--streak-color);
+    filter: drop-shadow(0 0 15px var(--streak-glow));
+    animation: fire-pulse 2s ease-in-out infinite;
+}
+
+.main-flame-icon {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    animation: flame-flicker-v2 0.3s ease-in-out infinite alternate;
+}
+
+.fire-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle, var(--streak-color) 0%, transparent 70%);
+    opacity: 0.2;
+    filter: blur(20px);
+    z-index: -1;
+}
+
+/* Stats Info */
+.streak-stats-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+}
+
+.streak-count-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+}
+
+.count-number {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff, var(--streak-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px var(--streak-glow));
+}
+
+.count-label h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+}
+
+.count-label p {
+    color: var(--streak-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* Milestone Hint */
+.streak-milestone-hint {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.hint-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hint-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--streak-color), #fff);
+    box-shadow: 0 0 15px var(--streak-glow);
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.streak-milestone-hint span {
+    font-size: 0.8rem;
+    color: var(--c-muted);
+}
+
+/* Weekly Map */
+.streak-weekly-map {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.day-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.node-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--c-muted);
+    transition: all 0.3s ease;
+}
+
+.day-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--c-muted);
+}
+
+.node-hit .node-circle {
+    background: var(--streak-color) !important;
+    border-color: var(--streak-color) !important;
+    color: #fff !important;
+    box-shadow: 0 0 20px var(--streak-glow);
+    transform: scale(1.15);
+}
+
+.node-hit .day-label {
+    color: var(--streak-color);
+    font-weight: 900;
+}
+
+.node-today .day-label {
+    color: #fff;
+}
+
+.node-today:not(.node-hit) .node-circle {
+    border-color: var(--streak-color);
+    color: var(--streak-color);
+}
+
+/* Animations */
+@keyframes flame-flicker-v2 {
+    0% {
+        transform: scale(1) skewX(0deg);
+    }
+
+    50% {
+        transform: scale(1.05) skewX(2deg);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: scale(0.95) skewX(-2deg);
+        opacity: 1;
+    }
+}
+
+@keyframes fire-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+        filter: brightness(1.2);
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+    .streak-main-display {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .streak-stats-info {
+        text-align: center;
+        align-items: center;
+    }
+
+    .streak-count-wrapper {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .count-number {
+        font-size: 3rem;
+    }
+
+    .streak-weekly-map {
+        gap: 0.4rem;
+    }
+
+    .node-circle {
+        width: 28px;
+        height: 28px;
+    }
+}

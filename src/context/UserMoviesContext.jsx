@@ -10,6 +10,8 @@ export const UserMoviesProvider = ({ children }) => {
     const [watchlist, setWatchlist] = useState([]);
     const [continueWatching, setContinueWatching] = useState([]);
     const [totalWatchTime, setTotalWatchTime] = useState(0);
+    const [streakData, setStreakData] = useState({ current: 0, highest: 0, lastActiveDate: '' });
+    const [activityPoints, setActivityPoints] = useState({}); // { 'YYYY-MM-DD': points }
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,6 +19,8 @@ export const UserMoviesProvider = ({ children }) => {
             setWatchlist([]);
             setContinueWatching([]);
             setTotalWatchTime(0);
+            setStreakData({ current: 0, highest: 0, lastActiveDate: '' });
+            setActivityPoints({});
             setLoading(false);
             return;
         }
@@ -31,6 +35,45 @@ export const UserMoviesProvider = ({ children }) => {
                 setWatchlist(data.watchlist || []);
                 setContinueWatching(data.continueWatching || []);
                 setTotalWatchTime(data.totalWatchTime || 0);
+
+                const currentStreak = data.streak || { current: 0, highest: 0, lastActiveDate: '' };
+                setStreakData(currentStreak);
+                setActivityPoints(data.activityPoints || {});
+
+                // Streak Calculation Logic & Daily Visit Point
+                const today = new Date().toISOString().split('T')[0];
+                if (currentStreak.lastActiveDate !== today) {
+                    const updateStreak = async () => {
+                        let newStreak = 1;
+                        let newHighest = currentStreak.highest || 0;
+
+                        if (currentStreak.lastActiveDate) {
+                            const yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                            if (currentStreak.lastActiveDate === yesterdayStr) {
+                                newStreak = currentStreak.current + 1;
+                            }
+                        }
+
+                        if (newStreak > newHighest) newHighest = newStreak;
+
+                        await updateDoc(userRef, {
+                            streak: {
+                                current: newStreak,
+                                highest: newHighest,
+                                lastActiveDate: today
+                            }
+                        });
+                        recordActivity(1); // Visit point
+                    };
+                    updateStreak();
+                } else {
+                    // If they haven't gotten their visit point today, record it
+                    // The updateDoc below will trigger the recordActivity point if we were to build it there, 
+                    // but let's just use the recordActivity helper once it's defined.
+                }
             }
             setLoading(false);
         }, (error) => {
@@ -125,6 +168,14 @@ export const UserMoviesProvider = ({ children }) => {
                 await updateDoc(userRef, {
                     watchlist: arrayUnion(updatedMovie)
                 });
+
+                // Record Activity: Completion (if status changed to completed)
+                if (newStatus === 'completed') {
+                    recordActivity(3);
+                } else {
+                    recordActivity(1); // Normal move is worth 1
+                }
+
                 return true;
             } catch (error) {
                 console.error("Error updating watchlist status:", error);
@@ -200,6 +251,22 @@ export const UserMoviesProvider = ({ children }) => {
         }
     };
 
+    // --- ACTIVITY GRID LOGIC ---
+    const recordActivity = async (points) => {
+        if (!currentUser) return;
+        const today = new Date().toISOString().split('T')[0];
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await setDoc(userRef, {
+                activityPoints: {
+                    [today]: increment(points)
+                }
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error recording activity:", error);
+        }
+    };
+
     const clearWatchHistory = async () => {
         if (!currentUser) return false;
         try {
@@ -228,6 +295,8 @@ export const UserMoviesProvider = ({ children }) => {
         watchlist,
         continueWatching,
         totalWatchTime,
+        streakData,
+        activityPoints,
         loading,
         isWatchlisted,
         getWatchlistStatus,
@@ -237,7 +306,8 @@ export const UserMoviesProvider = ({ children }) => {
         addWatchTime,
         removeFromContinueWatching,
         clearWatchHistory,
-        clearWatchlist
+        clearWatchlist,
+        recordActivity
     };
 
     return (
