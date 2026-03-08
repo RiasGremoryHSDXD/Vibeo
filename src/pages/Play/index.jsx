@@ -9,8 +9,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-
-import Header from '@/components/layout/Header';
 import { MOOD_MOVIES } from '@/data/moodData';
 import { useUserMovies } from '@/hooks/useUserMovies';
 import { TMDB_API_KEY, STREAM_PROVIDERS, TMDB_IMAGE_BASE } from '@/config/constants';
@@ -174,7 +172,6 @@ const Play = () => {
 
     return (
         <div className="page-wrapper">
-            <Header />
 
             {/* ── Breadcrumb bar ── */}
             <div className="play-topbar">
