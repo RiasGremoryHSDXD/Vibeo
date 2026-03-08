@@ -2,7 +2,7 @@ import React from 'react';
 import {
     Layout as LayoutIcon, Maximize, Minimize,
     Monitor, Hash, Calendar, Tag, Clock,
-    Check, Layers, Star
+    Check, Layers, Star, MessageSquare
 } from 'lucide-react';
 import { useLayout } from '@/context/LayoutContext';
 import './styles.css';
@@ -15,7 +15,8 @@ const LayoutSection = () => {
         heroSource, setHeroSource,
         heroAutoNext, setHeroAutoNext,
         heroInterval, setHeroInterval,
-        heroVideoQuality, setHeroVideoQuality
+        heroVideoQuality, setHeroVideoQuality,
+        showVibeyChat, setShowVibeyChat
     } = useLayout();
 
     const toggleMetadata = (key) => {
@@ -249,6 +250,26 @@ const LayoutSection = () => {
                             )}
                         </div>
                     ))}
+                </div>
+            </section>
+
+            {/* General Preferences */}
+            <section className="settings-group">
+                <h3>General Preferences</h3>
+                <p>Miscellaneous UI preferences.</p>
+                <div className="playback-settings">
+                    <div className="setting-row">
+                        <div className="setting-info">
+                            <strong>Show Vibey Chat</strong>
+                            <span>Display the floating AI assistant globally</span>
+                        </div>
+                        <div
+                            className={`toggle-item ${showVibeyChat ? 'active' : ''}`}
+                            onClick={() => setShowVibeyChat(!showVibeyChat)}
+                        >
+                            <div className="toggle-switch"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
