@@ -11,11 +11,9 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // ── Reusable components ──────────────────────────────────────
-import Header from '@/components/layout/Header';
 import HeroBanner from '@/components/layout/HeroBanner';
 import MoodMixer from '@/components/layout/MoodMixer';
 import MovieRow from '@/components/layout/MovieRow';
-import Footer from '@/components/layout/Footer';
 import { useLayout } from '@/context/LayoutContext';
 
 // ── Data sources ──────────────────────────────────────────────
@@ -32,7 +30,7 @@ const Dashboard = () => {
     const handleCardClick = (movie) => navigate(`/watch/${movie.id}`);
 
     // Personalized recommendations
-    const { movies: moodMatches } = useMoodMatchMovies();
+    const { data: moodMatches, isLoading: moodMatchesLoading } = useMoodMatchMovies();
 
     // Effect for auto-scrolling to section
     useEffect(() => {
@@ -58,13 +56,11 @@ const Dashboard = () => {
         if (heroSource === 'popular') sourceMovies = popular;
         if (heroSource === 'moodMatch') sourceMovies = moodMatches;
 
-        return sourceMovies?.slice(0, 5) || [];
+        return (sourceMovies || []).slice(0, 5);
     };
 
     return (
         <div className="page-wrapper home-page">
-            <Header />
-
             <main>
                 <HeroBanner movies={getHeroMovies()} />
 
@@ -92,12 +88,12 @@ const Dashboard = () => {
                         loading={loading}
                         onCardClick={handleCardClick}
                     />
-                    {(loading || (moodMatches && moodMatches.length > 0)) && (
+                    {(loading || moodMatchesLoading || (moodMatches && moodMatches.length > 0)) && (
                         <MovieRow
                             id="mood-match"
                             title="Based on your Favorites"
                             movies={moodMatches}
-                            loading={loading}
+                            loading={loading || moodMatchesLoading}
                             onCardClick={handleCardClick}
                             showBadge={true}
                         />
@@ -118,8 +114,6 @@ const Dashboard = () => {
                     />
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 };
