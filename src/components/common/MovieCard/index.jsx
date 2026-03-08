@@ -4,7 +4,7 @@ import WatchlistDropdown from '../WatchlistDropdown';
 import { getGenreNames } from '@/utils/genres';
 import './styles.css';
 
-const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/w342';
+const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/w185';
 const FALLBACK_IMG = 'https://placehold.co/220x330/1a1a2e/6b6b8a?text=No+Poster';
 
 const MovieCard = React.memo(({ movie, onClick, animationDelay = '0ms', showMatchBadge = false }) => {
