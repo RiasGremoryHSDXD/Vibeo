@@ -1,0 +1,31 @@
+.browse-loading-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 0;
+    color: var(--c-muted, #64748b);
+    font-size: 0.85rem;
+}
+
+.browse-loading-more .spinner {
+    width: 20px;
+    height: 20px;
+}
+
+/* ── Empty State ───────────────────────────────────────────── */
+.browse-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8rem 2rem;
+    color: var(--c-muted, #64748b);
+    text-align: center;
+}
+
+.browse-empty h2 {
+    font-size: 1.5rem;
+    color: var(--c-text, #e2e8f0);
+    margin-bottom: 0.5rem;
+}
