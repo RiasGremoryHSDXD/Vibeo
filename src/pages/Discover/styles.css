@@ -1,11 +1,10 @@
 /* ================================================================
-   SMART SEARCH PAGE — Modular Styles
+   DISCOVER PAGE — Modular Styles
    Split into logical files for better maintenance.
    ================================================================ */
 
 @import './styles/layout.css';
-@import './styles/hero.css';
-@import './styles/suggestions.css';
-@import './styles/ai.css';
 @import './styles/filters.css';
-@import './styles/results.css';
+@import './styles/grid.css';
+@import './styles/detail.css';
+@import './styles/states.css';

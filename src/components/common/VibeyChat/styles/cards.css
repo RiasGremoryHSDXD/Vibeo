@@ -1,0 +1,105 @@
+/* ── Movie Recommendation Cards ── */
+.vibey-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.vibey-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--r-md);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.vibey-card:hover {
+    border-color: var(--c-accent-glow);
+    background: var(--c-surface2);
+}
+
+.vibey-card__poster {
+    width: 52px;
+    height: 78px;
+    border-radius: var(--r-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--c-surface3);
+}
+
+.vibey-card__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    gap: 4px;
+}
+
+.vibey-card__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--c-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vibey-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vibey-card__rating {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--c-gold);
+}
+
+.vibey-card__year {
+    font-size: 0.7rem;
+    color: var(--c-muted);
+}
+
+.vibey-card__actions {
+    display: flex;
+    gap: 6px;
+}
+
+.vibey-card__btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    border: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.vibey-card__btn--primary {
+    background: var(--c-accent);
+    color: #fff;
+}
+
+.vibey-card__btn--primary:hover {
+    background: var(--c-accent-lt);
+}
+
+.vibey-card__btn--secondary {
+    background: var(--c-surface3);
+    color: var(--c-text2);
+}
+
+.vibey-card__btn--secondary:hover {
+    background: var(--c-border2);
+    color: var(--c-text);
+}

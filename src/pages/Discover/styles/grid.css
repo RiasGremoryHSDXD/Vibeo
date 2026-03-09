@@ -1,0 +1,99 @@
+/* ── Movie Grid ────────────────────────────────────────────── */
+.browse-grid-container {
+    padding: 1rem 1.5rem 3rem;
+    overflow-y: auto;
+    height: 100%;
+    scroll-padding-top: 1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.browse-grid-container::-webkit-scrollbar {
+    display: none;
+}
+
+.browse-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.25rem;
+}
+
+/* ── Card wrapper — disable MovieCard hover in browse context ── */
+.browse-card-wrap {
+    cursor: pointer;
+    border-radius: 8px;
+    position: relative;
+    transition: none;
+}
+
+/* Force uniform card height — hide variable-height text info */
+.browse-card-wrap .mc__info {
+    display: none;
+}
+
+.browse-card-wrap .mc {
+    height: 100%;
+}
+
+.browse-card-wrap .mc__poster-wrap {
+    aspect-ratio: 2 / 3;
+}
+
+/* Disable the scale-on-hover from MovieCard */
+.browse-card-wrap .mc--hovered {
+    transform: none !important;
+    z-index: auto !important;
+}
+
+.browse-card-wrap .mc__overlay {
+    display: none !important;
+}
+
+/* Selected card border */
+.browse-card-wrap.selected {
+    box-shadow: 0 0 0 2.5px var(--c-accent, #a855f7);
+    border-radius: 10px;
+}
+
+/* ── Infinite Scroll ───────────────────────────────────────── */
+.browse-load-trigger {
+    grid-column: 1 / -1;
+    height: 1px;
+}
+
+@media (max-width: 1100px) {
+    .browse-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Re-enable hover on mobile since no detail panel occupies layout space */
+    .browse-card-wrap .mc--hovered {
+        transform: scale(1.05) !important;
+    }
+
+    .browse-card-wrap .mc__overlay {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .browse-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .browse-grid-container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .browse-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
+
+    .browse-grid-container {
+        padding: 0.75rem;
+    }
+}

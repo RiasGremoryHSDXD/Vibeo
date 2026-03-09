@@ -63,7 +63,7 @@ const MovieRow = ({ title, movies = [], onCardClick, showBadge = false, icon = '
                                     <polyline points="9 18 15 12 9 6" />
                                 </svg>
                             </button>
-                            <span className="row-see-all" onClick={() => navigate(`/browse/${id || 'trending'}`)}>See All</span>
+                            <span className="row-see-all" onClick={() => navigate(`/discover/${id || 'trending'}`)}>See All</span>
                         </div>
                     </div>
 

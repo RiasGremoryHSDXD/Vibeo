@@ -1,0 +1,59 @@
+.detail-hero__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.detail-hero__backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    filter: brightness(0.45) saturate(1.1);
+}
+
+/* Auto-playing Background Video */
+.detail-hero__video-bg {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+.detail-hero__video-bg iframe {
+    width: 100vw;
+    height: 56.25vw;
+    /* 16:9 Aspect Ratio */
+    min-height: 100vh;
+    min-width: 177.77vh;
+    /* 16:9 Aspect Ratio */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.15);
+    /* Scale up slightly to hide youtube branding/edges */
+    pointer-events: none;
+    /* Make it unclickable */
+    opacity: 0.6;
+    /* Dim it so text is readable */
+}
+
+.detail-hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(to right, rgba(10, 10, 18, 0.95) 0%, rgba(10, 10, 18, 0.7) 40%, rgba(10, 10, 18, 0.3) 100%),
+        linear-gradient(to top, var(--c-bg) 0%, transparent 30%);
+}
+
+@media (max-width: 768px) {
+    .detail-hero__backdrop img {
+        object-position: center 10%;
+    }
+
+    .detail-hero__video-bg iframe {
+        opacity: 0.4;
+        /* Slightly dimmer on mobile for better text contrast */
+    }
+}

@@ -1,0 +1,46 @@
+.ai-page {
+    background: var(--c-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background Decoration */
+.ai-page::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: 20%;
+    width: 60%;
+    height: 40%;
+    background: radial-gradient(circle, var(--c-accent-glow) 0%, transparent 70%);
+    filter: blur(100px);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.ai-container {
+    max-width: 1720px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 2.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 1200px) {
+    .ai-container {
+        grid-template-columns: 420px 1fr;
+        gap: 2rem;
+        padding: 0 2rem 4rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .ai-container {
+        grid-template-columns: 1fr;
+        padding-bottom: 2rem;
+    }
+}

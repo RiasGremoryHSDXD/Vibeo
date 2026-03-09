@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════════════════
+   FLOATING ACTION BUTTON
+   ═══════════════════════════════════════════════════════════════ */
+.vibey-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-lt));
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 4px 20px var(--c-accent-glow),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10000;
+}
+
+.vibey-fab:hover {
+    transform: scale(1.08);
+    box-shadow:
+        0 6px 28px var(--c-accent-glow),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.vibey-fab--active {
+    transform: rotate(90deg) scale(1);
+    background: var(--c-surface2);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.vibey-fab--active:hover {
+    transform: rotate(90deg) scale(1.08);
+}
+
+.vibey-fab__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+/* Pulse ring */
+.vibey-fab__pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--c-accent-lt);
+    opacity: 0;
+    animation: vibey-pulse 2.5s ease-in-out infinite;
+}
+
+.vibey-fab--active .vibey-fab__pulse {
+    animation: none;
+    opacity: 0;
+}
+
+@keyframes vibey-pulse {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.15);
+    }
+}

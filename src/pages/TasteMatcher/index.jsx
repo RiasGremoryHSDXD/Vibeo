@@ -8,7 +8,7 @@ import { useUserMovies } from '@/hooks/useUserMovies';
 import { TMDB_IMAGE_BASE } from '@/config/constants';
 import './styles.css';
 
-const AIRecommender = () => {
+const TasteMatcher = () => {
     const navigate = useNavigate();
 
     const { currentUser } = useAuth();
@@ -16,26 +16,26 @@ const AIRecommender = () => {
 
     // Lists logic (Persisted to sessionStorage)
     const [watched, setWatched] = useState(() => {
-        const saved = sessionStorage.getItem('ai_watched');
+        const saved = sessionStorage.getItem('taste_watched');
         return saved ? JSON.parse(saved) : [];
     });
     const [loved, setLoved] = useState(() => {
-        const saved = sessionStorage.getItem('ai_loved');
+        const saved = sessionStorage.getItem('taste_loved');
         return saved ? JSON.parse(saved) : [];
     });
 
     // AI Analysis
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [recommendations, setRecommendations] = useState(() => {
-        const saved = sessionStorage.getItem('ai_recommendations');
+        const saved = sessionStorage.getItem('taste_recommendations');
         return saved ? JSON.parse(saved) : [];
     });
     const [loadingLogs, setLoadingLogs] = useState([]);
 
     // Persist to session storage so users don't lose progress when navigating away
-    useEffect(() => { sessionStorage.setItem('ai_watched', JSON.stringify(watched)); }, [watched]);
-    useEffect(() => { sessionStorage.setItem('ai_loved', JSON.stringify(loved)); }, [loved]);
-    useEffect(() => { sessionStorage.setItem('ai_recommendations', JSON.stringify(recommendations)); }, [recommendations]);
+    useEffect(() => { sessionStorage.setItem('taste_watched', JSON.stringify(watched)); }, [watched]);
+    useEffect(() => { sessionStorage.setItem('taste_loved', JSON.stringify(loved)); }, [loved]);
+    useEffect(() => { sessionStorage.setItem('taste_recommendations', JSON.stringify(recommendations)); }, [recommendations]);
 
     // Search 
     const [searchQuery, setSearchQuery] = useState('');
@@ -167,7 +167,7 @@ const AIRecommender = () => {
             <main className="ai-main fade-in-up">
 
                 <div className="ai-header">
-                    <h1>AI Taste Matcher</h1>
+                    <h1>Taste Matcher</h1>
                     <p>Build your profile and let our AI engine find your next favorite movie.</p>
                 </div>
 
@@ -324,4 +324,4 @@ const AIRecommender = () => {
     );
 };
 
-export default AIRecommender;
+export default TasteMatcher;

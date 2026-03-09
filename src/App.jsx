@@ -37,7 +37,7 @@ const VibeyChat = lazy(() => import('@/components/common/VibeyChat'));
 const Watch = lazy(() => import('@/pages/Watch'));
 const Play = lazy(() => import('@/pages/Play'));
 const Profile = lazy(() => import('@/pages/Profile'));
-const Browse = lazy(() => import('@/pages/Browse'));
+const Discover = lazy(() => import('@/pages/Discover'));
 const Search = lazy(() => import('@/pages/Search'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const AZList = lazy(() => import('@/pages/AZList'));
@@ -45,7 +45,7 @@ const Settings = lazy(() => import('@/pages/Settings'));
 const TermsOfService = lazy(() => import('@/pages/Legal/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('@/pages/Legal/PrivacyPolicy'));
 const CookiePreferences = lazy(() => import('@/pages/Legal/CookiePreferences'));
-const AIRecommender = lazy(() => import('@/pages/AIRecommender'));
+const TasteMatcher = lazy(() => import('@/pages/TasteMatcher'));
 const SmartSearch = lazy(() => import('@/pages/SmartSearch'));
 const VibeyPage = lazy(() => import('@/pages/VibeyPage'));
 const ThemeStore = lazy(() => import('@/pages/ThemeStore'));
@@ -176,7 +176,7 @@ const App = () => {
 
   // Centralized Flicker-Free Scrollbar Management
   useLayoutEffect(() => {
-    const noScrollbarPages = ['/vibey', '/smart-search', '/ai-match'];
+    const noScrollbarPages = ['/vibey', '/smart-search', '/taste-matcher'];
     const isNoScrollbarPage = noScrollbarPages.includes(location.pathname);
 
     const html = document.documentElement;
@@ -209,14 +209,14 @@ const App = () => {
 
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/browse/:categoryId" element={<Browse />} />
+            <Route path="/discover/:categoryId" element={<Discover />} />
             <Route path="/search" element={<Search />} />
             <Route path="/az-list" element={<AZList />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/cookies" element={<CookiePreferences />} />
-            <Route path="/ai-match" element={<AIRecommender />} />
+            <Route path="/taste-matcher" element={<TasteMatcher />} />
             <Route path="/smart-search" element={<SmartSearch />} />
             <Route path="/vibey" element={<VibeyPage />} />
             <Route path="/watch/:id" element={<Watch />} />

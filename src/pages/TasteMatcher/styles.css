@@ -1,11 +1,11 @@
 /* ================================================================
-   SMART SEARCH PAGE — Modular Styles
+   TASTE MATCHER — Modular Styles
    Split into logical files for better maintenance.
    ================================================================ */
 
 @import './styles/layout.css';
-@import './styles/hero.css';
-@import './styles/suggestions.css';
-@import './styles/ai.css';
-@import './styles/filters.css';
+@import './styles/header.css';
+@import './styles/builder.css';
+@import './styles/lists.css';
+@import './styles/action.css';
 @import './styles/results.css';

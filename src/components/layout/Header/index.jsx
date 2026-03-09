@@ -212,12 +212,12 @@ const Header = () => {
                         <nav className={`topbar__nav ${isMobileMenuOpen ? 'mobile-open' : ''}`} aria-label="Site Navigation">
                             <div className="topbar__nav-links">
                                 {[
-                                    { label: 'Discover', path: '/browse/trending' },
+                                    { label: 'Discover', path: '/discover/trending' },
                                     { label: 'Smart Search', path: '/smart-search' },
                                     { label: 'Vibey', path: '/vibey' },
-                                    { label: 'Taste Matcher', path: '/ai-match' },
+                                    { label: 'Taste Matcher', path: '/taste-matcher' },
                                 ].map(link => {
-                                    const isActive = location.pathname === link.path || (link.path.startsWith('/browse') && location.pathname.startsWith('/browse'));
+                                    const isActive = location.pathname === link.path || (link.path.startsWith('/discover') && location.pathname.startsWith('/discover'));
                                     return (
                                         <button
                                             key={link.label}

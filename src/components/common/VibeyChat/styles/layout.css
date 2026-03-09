@@ -1,0 +1,81 @@
+/* ── Container ── */
+.vibey-container {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.vibey-container>* {
+    pointer-events: auto;
+}
+
+/* Ensure no overlap with scroll-to-top buttons or other overlays if any */
+@media (max-width: 768px) {
+    .vibey-fab {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .vibey-panel {
+        bottom: 80px;
+        right: 20px;
+        width: calc(100% - 40px);
+    }
+}
+
+/* ── Chat Panel ── */
+.vibey-panel {
+    position: fixed;
+    bottom: 92px;
+    right: 24px;
+    width: 380px;
+    height: 540px;
+    border-radius: var(--r-xl);
+    background: var(--c-bg2);
+    border: 1px solid var(--c-border2);
+    backdrop-filter: var(--glass-blur);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 0 0 1px var(--c-border);
+    z-index: 9999;
+
+    /* Hidden by default */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vibey-panel--open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* ── Responsive — Full-screen on mobile ── */
+@media (max-width: 480px) {
+    .vibey-panel {
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        transform: translateY(100%);
+    }
+
+    .vibey-panel--open {
+        transform: translateY(0);
+    }
+
+    .vibey-fab {
+        bottom: 16px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+    }
+}

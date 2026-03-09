@@ -1,0 +1,29 @@
+/* Horizontal Scroller for Continue Watching */
+.scroller-section {
+    width: 100%;
+    overflow: hidden;
+}
+
+.dashboard-scroller {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0 2rem;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+.dashboard-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.dashboard-scroller .card-manage-wrapper {
+    flex: 0 0 180px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dashboard-scroller .card-manage-wrapper:hover {
+    transform: scale(1.05);
+}
