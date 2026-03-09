@@ -1,0 +1,122 @@
+/* ── Hero Search Area ── */
+.smart-hero {
+    text-align: center;
+    padding: 3rem 0 1rem;
+}
+
+.smart-hero-title {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--c-text);
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-hover, #e8a54a));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.smart-hero-subtitle {
+    color: var(--c-muted);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ── Search Bar ── */
+.smart-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--c-surface2);
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+    padding: 0.5rem 0.75rem;
+    max-width: 700px;
+    margin: 0 auto;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.smart-search-bar:focus-within {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(var(--c-accent-rgb, 200, 155, 80), 0.15);
+}
+
+.smart-search-icon {
+    color: var(--c-muted);
+    flex-shrink: 0;
+}
+
+.smart-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--c-text);
+    font-size: 1.05rem;
+    padding: 0.6rem 0;
+    font-family: inherit;
+}
+
+.smart-search-input::placeholder {
+    color: var(--c-muted);
+    opacity: 0.6;
+}
+
+.smart-clear-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--c-muted);
+    padding: 0.4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background 0.2s;
+}
+
+.smart-clear-btn:hover {
+    color: var(--c-text);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.smart-search-btn {
+    background: var(--c-accent);
+    color: var(--c-bg);
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+}
+
+.smart-search-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.smart-search-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+    .smart-hero-title {
+        font-size: 1.8rem;
+    }
+
+    .smart-search-bar {
+        border-radius: 10px;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .smart-search-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
