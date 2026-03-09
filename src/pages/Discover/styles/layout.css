@@ -1,0 +1,27 @@
+.browse-main {
+    padding-top: 0;
+    height: calc(100vh - 59px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Lock page-level scroll on browse page */
+.page-wrapper:has(.browse-main) {
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ── Two-Column Layout (Stremio-style) ────────────────────── */
+.browse-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    flex: 1;
+    overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+    .browse-layout {
+        grid-template-columns: 1fr;
+    }
+}
