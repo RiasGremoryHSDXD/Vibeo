@@ -1,0 +1,53 @@
+/* ── Suggestion Chips ── */
+.smart-suggestions {
+    text-align: center;
+}
+
+.smart-suggestions-label {
+    display: block;
+    color: var(--c-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.smart-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.smart-suggestion-chip {
+    background: var(--c-surface2);
+    color: var(--c-text2);
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.smart-suggestion-chip:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: rgba(var(--c-accent-rgb, 200, 155, 80), 0.08);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+    .smart-chips-row {
+        gap: 0.4rem;
+    }
+
+    .smart-suggestion-chip {
+        font-size: 0.78rem;
+        padding: 0.35rem 0.8rem;
+    }
+}
