@@ -1,0 +1,133 @@
+/* ================================================================
+   HERO BANNER — Typography, Meta & Content
+   ================================================================ */
+
+/* Content layer — sits above the track, animates in on slide change */
+.hero-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 560px;
+    padding: 3rem 1.5rem 3.5rem 2rem;
+    animation: slideInContent 0.4s ease both;
+}
+
+.hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c-accent-lt);
+    margin-bottom: 0.6rem;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.2rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-end;
+}
+
+.hero-title .movie-logo-img {
+    max-height: 200px;
+    filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 40px rgba(147, 51, 234, 0.15));
+}
+
+/* Meta badge row */
+.hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+}
+
+.hero-meta__year {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--c-text2);
+}
+
+.hero-meta__sep {
+    color: var(--c-muted);
+    font-size: 0.75rem;
+}
+
+/* Gold star + number badge */
+.hero-meta__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f59e0b;
+}
+
+/* HD badge — blue pill */
+.hero-meta__hd {
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 5px;
+}
+
+.hero-overview {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--c-text2);
+    margin-bottom: 2.5rem;
+    max-width: 900px;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+    .hero {
+        align-items: flex-end;
+        justify-content: flex-start;
+    }
+
+    .hero-content {
+        text-align: left;
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+        padding: 2.5rem 1.25rem 4rem 1.25rem;
+        max-width: 100%;
+    }
+
+    .hero-title {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .hero-title .movie-logo-img {
+        max-height: 120px;
+    }
+
+    .hero-meta {
+        justify-content: flex-start;
+    }
+}
+
+@media (min-width: 900px) {
+    .hero-content {
+        padding-bottom: 3.5rem;
+    }
+}

@@ -1,0 +1,75 @@
+/* ================================================================
+   HERO BANNER — Button Actions
+   ================================================================ */
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0;
+}
+
+.hero-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--c-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: var(--r-pill);
+    padding: 11px 26px;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 4px 20px var(--c-accent-glow);
+}
+
+.hero-btn-primary:hover {
+    background: var(--c-accent-lt);
+    transform: scale(1.03);
+}
+
+.hero-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--r-pill);
+    padding: 11px 22px;
+    transition: background 0.2s;
+    backdrop-filter: blur(8px);
+}
+
+.hero-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 600px) {
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.65rem;
+        width: 100%;
+    }
+
+    .hero-btn-watch,
+    .hero-btn-trailer,
+    .hero-btn-details {
+        width: auto;
+        min-width: 0;
+        justify-content: flex-start;
+        padding: 9px 18px;
+        font-size: 0.8rem;
+    }
+
+    .hero-btn-watch {
+        padding: 10px 22px;
+        font-size: 0.85rem;
+    }
+}

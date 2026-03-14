@@ -1,0 +1,77 @@
+/* ================================================================
+   HERO BANNER — Navigation (Arrows & Dots)
+   ================================================================ */
+
+/* Prev / Next arrow buttons — bottom-right corner (Yorumi-style) */
+.hero-arrow {
+    position: absolute;
+    z-index: 30;
+    bottom: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.hero-arrow:hover {
+    background: var(--c-accent);
+    border-color: var(--c-accent);
+    transform: scale(1.1);
+}
+
+.hero-arrow--left {
+    right: 64px;
+}
+
+.hero-arrow--right {
+    right: 20px;
+}
+
+@media (max-width: 768px) {
+    .hero-arrow {
+        display: none;
+    }
+}
+
+/* Dot bar — absolute, full width, horizontally centered at bottom */
+.hero-dots-bar {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    z-index: 20;
+}
+
+.hero-dot {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    transition: background 0.2s, width 0.25s, border-radius 0.25s;
+    flex-shrink: 0;
+}
+
+.hero-dot:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.hero-dot.active {
+    background: var(--c-accent-lt);
+    width: 22px;
+    border-radius: 4px;
+}
