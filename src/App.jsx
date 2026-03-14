@@ -11,12 +11,13 @@
  */
 
 import { Suspense, lazy, useEffect, useLayoutEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useLayout } from '@/context/LayoutContext';
 import { UserMoviesProvider } from '@/context/UserMoviesContext';
+import ErrorToast from '@/components/common/ErrorToast';
 
 /**
  * Utility to Scroll to top on route change
@@ -27,6 +28,26 @@ const ScrollToTop = () => {
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
+};
+
+/**
+ * Route wrapper to prevent unauthenticated access to sensitive pages.
+ */
+const ProtectedRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!loading && !currentUser) {
+      // Save the attempted path to redirect back after login if needed
+      // For now, just send to home
+      navigate('/', { replace: true });
+    }
+  }, [currentUser, loading, navigate]);
+
+  if (loading) return null; // Wait for auth to resolve
+  return currentUser ? children : null;
 };
 
 // Core Components (Keep synchronous for immediate load)
@@ -49,6 +70,7 @@ const TasteMatcher = lazy(() => import('@/pages/TasteMatcher'));
 const SmartSearch = lazy(() => import('@/pages/SmartSearch'));
 const VibeyPage = lazy(() => import('@/pages/VibeyPage'));
 const ThemeStore = lazy(() => import('@/pages/ThemeStore'));
+const Library = lazy(() => import('@/pages/Library'));
 
 /**
  * Premium Loading Fallback - Cinematic & Polished
@@ -149,6 +171,7 @@ const LoadingScreen = () => (
   </div>
 );
 
+
 const App = () => {
   const { currentUser, isOnboarded } = useAuth();
   const { showVibeyChat } = useLayout();
@@ -164,12 +187,13 @@ const App = () => {
 
   useEffect(() => {
     // Basic route protection for onboarding flow
-    // ... logic ...
     if (currentUser && isOnboarded !== null) {
-      if (isOnboarded === false && location.pathname !== '/onboarding') {
-        navigate('/onboarding');
-      } else if (isOnboarded === true && location.pathname === '/onboarding') {
-        navigate('/');
+      const isNavigatingToOnboarding = location.pathname === '/onboarding';
+
+      if (isOnboarded === false && !isNavigatingToOnboarding) {
+        navigate('/onboarding', { replace: true });
+      } else if (isOnboarded === true && isNavigatingToOnboarding) {
+        navigate('/', { replace: true });
       }
     }
   }, [currentUser, isOnboarded, location.pathname, navigate]);
@@ -208,19 +232,21 @@ const App = () => {
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/discover" element={<Navigate to="/discover/trending" replace />} />
             <Route path="/discover/:categoryId" element={<Discover />} />
             <Route path="/search" element={<Search />} />
             <Route path="/az-list" element={<AZList />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/cookies" element={<CookiePreferences />} />
-            <Route path="/taste-matcher" element={<TasteMatcher />} />
-            <Route path="/smart-search" element={<SmartSearch />} />
-            <Route path="/vibey" element={<VibeyPage />} />
+            <Route path="/taste-matcher" element={<ProtectedRoute><TasteMatcher /></ProtectedRoute>} />
+            <Route path="/smart-search" element={<ProtectedRoute><SmartSearch /></ProtectedRoute>} />
+            <Route path="/vibey" element={<ProtectedRoute><VibeyPage /></ProtectedRoute>} />
             <Route path="/watch/:id" element={<Watch />} />
             <Route path="/theme-store" element={<ThemeStore />} />
+            <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
 
             {/* Play page – dedicated player */}
             <Route path="/play/:id" element={<Play />} />
@@ -250,10 +276,14 @@ const App = () => {
           </Routes>
         </Suspense>
 
-        <Footer />
+        {/* Avoid rendering footer on app-like views */}
+        {!['/onboarding', '/profile', '/settings'].includes(location.pathname) && <Footer />}
 
-        {/* Vibey AI Chatbot — global floating overlay (Hidden on Settings page or if disabled in settings) */}
-        {showVibeyChat && location.pathname !== '/settings' && <VibeyChat />}
+        {/* Vibey AI Chatbot — global floating overlay (Hidden on app-like views) */}
+        {showVibeyChat && !['/settings', '/onboarding', '/profile'].includes(location.pathname) && <VibeyChat />}
+
+        {/* Global Error Notifications */}
+        <ErrorToast />
       </UserMoviesProvider>
     </>
   );
