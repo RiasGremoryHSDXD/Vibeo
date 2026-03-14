@@ -36,6 +36,12 @@
   /* Constant colors for components that should stay dark/light regardless of theme */
   --c-white: #ffffff;
   --c-black: #000000;
+
+  /* Z-Index Hierarchy */
+  --z-header: 200;
+  --z-dropdown: 1000;
+  --z-modal: 2000;
+  --z-overlay: 3000;
 }
 
 /* ================================================================
@@ -130,6 +136,13 @@ body {
   min-height: 100vh;
   overflow: visible;
   /* Prevent body-level scrollbars */
+}
+
+/* ── Scroll Lock ── */
+body.body-lock,
+html.body-lock {
+  overflow: hidden !important;
+  touch-action: none;
 }
 
 /* ── Special Page Utility (Invisible Scrolling) ── */
@@ -245,7 +258,14 @@ img {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  animation: fadeInUp 0.3s ease-out both;
+  overflow-x: hidden;
+  /* Use simple fade-in here to avoid transform-related fixed position bugs */
+  animation: fadeIn 0.4s ease-out both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ================================================================
