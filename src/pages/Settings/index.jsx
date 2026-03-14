@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Palette, Layout, Database, Info } from 'lucide-react';
+import { Palette, Layout, Database, Info, Terminal } from 'lucide-react';
 import AppearanceSection from './sections/Appearance';
 import LayoutSection from './sections/Layout';
 import DataSection from './sections/Data';
 import AboutSection from './sections/About';
+import DevToolsSection from './sections/DevTools';
 import './styles.css';
 
 const Settings = () => {
@@ -15,6 +16,7 @@ const Settings = () => {
             case 'layout': return <LayoutSection />;
             case 'data': return <DataSection />;
             case 'about': return <AboutSection />;
+            case 'dev': return <DevToolsSection />;
             default: return <AppearanceSection />;
         }
     };
@@ -33,48 +35,9 @@ const Settings = () => {
                 </div>
 
                 <div className="settings-container">
-                    <aside className="settings-sidebar">
+                    <aside className="settings-sidebar desktop-sidebar">
                         <nav>
-                            <button
-                                className={`nav-item ${activeTab === 'appearance' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('appearance')}
-                            >
-                                <span className="icon"><Palette size={20} /></span>
-                                <div className="text-content">
-                                    <strong>Appearance</strong>
-                                    <span>Theme & visual settings</span>
-                                </div>
-                            </button>
-                            <button
-                                className={`nav-item ${activeTab === 'layout' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('layout')}
-                            >
-                                <span className="icon"><Layout size={20} /></span>
-                                <div className="text-content">
-                                    <strong>Layout</strong>
-                                    <span>Grid & card preferences</span>
-                                </div>
-                            </button>
-                            <button
-                                className={`nav-item ${activeTab === 'data' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('data')}
-                            >
-                                <span className="icon"><Database size={20} /></span>
-                                <div className="text-content">
-                                    <strong>Data & Import</strong>
-                                    <span>Export, import, cleanup</span>
-                                </div>
-                            </button>
-                            <button
-                                className={`nav-item ${activeTab === 'about' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('about')}
-                            >
-                                <span className="icon"><Info size={20} /></span>
-                                <div className="text-content">
-                                    <strong>About</strong>
-                                    <span>Version & developer info</span>
-                                </div>
-                            </button>
+                            <TabItems activeTab={activeTab} setActiveTab={setActiveTab} />
                         </nav>
                     </aside>
 
@@ -83,7 +46,49 @@ const Settings = () => {
                     </main>
                 </div>
             </div>
+
+            {/* Mobile Bottom Navigation (Outside the transformed settings-page container) */}
+            <aside className="settings-sidebar mobile-sidebar">
+                <nav>
+                    <TabItems activeTab={activeTab} setActiveTab={setActiveTab} isMobile />
+                </nav>
+            </aside>
         </div>
+    );
+};
+
+const TabItems = ({ activeTab, setActiveTab, isMobile }) => {
+    const tabs = [
+        { id: 'appearance', label: 'Appearance', sub: 'Theme & visual settings', icon: Palette },
+        { id: 'layout', label: 'Layout', sub: 'Grid & card preferences', icon: Layout },
+        { id: 'data', label: 'Data & Import', sub: 'Export, import, cleanup', icon: Database },
+        { id: 'about', label: 'About', sub: 'Version & developer info', icon: Info },
+        { id: 'dev', label: 'Dev Mode', sub: 'Testing utilities', icon: Terminal, color: '#ef4444' }
+    ];
+
+    return (
+        <>
+            {tabs.map((tab, index) => (
+                <React.Fragment key={tab.id}>
+                    {tab.id === 'dev' && !isMobile && (
+                        <div className="nav-divider" style={{ height: '1px', background: 'var(--c-surface3)', margin: '1rem 0' }} />
+                    )}
+                    <button
+                        className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                        style={tab.color && !isMobile ? { borderLeftColor: tab.color } : {}}
+                    >
+                        <span className="icon" style={tab.color ? { color: tab.color } : {}}>
+                            <tab.icon size={20} />
+                        </span>
+                        <div className="text-content">
+                            <strong style={tab.color ? { color: tab.color } : {}}>{tab.label}</strong>
+                            {!isMobile && <span>{tab.sub}</span>}
+                        </div>
+                    </button>
+                </React.Fragment>
+            ))}
+        </>
     );
 };
 
