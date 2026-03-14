@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { useUserMoviesContext } from '@/context/UserMoviesContext';
+import { useUserMoviesContext, getLocalISOString } from '@/context/UserMoviesContext';
 import './styles.css';
 
 const CinephileGrid = ({ className = "" }) => {
@@ -23,7 +23,7 @@ const CinephileGrid = ({ className = "" }) => {
         const now = new Date();
 
         while (iterDate <= now) {
-            const dateStr = iterDate.toISOString().split('T')[0];
+            const dateStr = getLocalISOString(iterDate);
             const points = activityPoints[dateStr] || 0;
 
             // Tier calculation
@@ -53,6 +53,26 @@ const CinephileGrid = ({ className = "" }) => {
         }
         return w;
     }, [gridData]);
+
+    // Calculate month labels and their week positions
+    const monthLabels = useMemo(() => {
+        const labels = [];
+        weeks.forEach((week, index) => {
+            if (week.length === 0) return;
+            const firstDay = new Date(week[0].date);
+            const monthName = firstDay.toLocaleString('en-US', { month: 'short' });
+
+            if (index === 0) {
+                labels.push({ month: monthName, index });
+            } else {
+                const prevFirstDay = new Date(weeks[index - 1][0].date);
+                if (prevFirstDay.getMonth() !== firstDay.getMonth()) {
+                    labels.push({ month: monthName, index });
+                }
+            }
+        });
+        return labels;
+    }, [weeks]);
 
     // Auto-scroll to end on mount
     useEffect(() => {
@@ -90,30 +110,37 @@ const CinephileGrid = ({ className = "" }) => {
                     <span>Fri</span>
                 </div>
                 <div className="grid-main">
-                    {weeks.map((week, wIdx) => (
-                        <div key={wIdx} className="grid-column">
-                            {week.map((day, dIdx) => (
-                                <div
-                                    key={day.date}
-                                    className={`grid-square lvl-${day.level}`}
-                                    title={`${day.points} points on ${day.displayDate}`}
-                                >
-                                    <div className="square-tooltip">
-                                        <strong>{day.points} points</strong>
-                                        <span>{day.displayDate}</span>
-                                    </div>
+                    {/* Month Labels Row - Aligned with columns */}
+                    <div className="grid-months-row">
+                        {weeks.map((_, wIdx) => {
+                            const label = monthLabels.find(l => l.index === wIdx);
+                            return (
+                                <div key={`month-${wIdx}`} className="grid-month-col">
+                                    {label && <span className="grid-month-label">{label.month}</span>}
                                 </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            </div>
+                            );
+                        })}
+                    </div>
 
-            <div className="grid-months-x">
-                {/* Simplified month labels logic */}
-                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
-                    <span key={m}>{m}</span>
-                ))}
+                    <div className="grid-weeks-row">
+                        {weeks.map((week, wIdx) => (
+                            <div key={wIdx} className="grid-column">
+                                {week.map((day, dIdx) => (
+                                    <div
+                                        key={day.date}
+                                        className={`grid-square lvl-${day.level}`}
+                                        title={`${day.points} points on ${day.displayDate}`}
+                                    >
+                                        <div className="square-tooltip">
+                                            <strong>{day.points} points</strong>
+                                            <span>{day.displayDate}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
