@@ -16,7 +16,8 @@ const LayoutSection = () => {
         heroAutoNext, setHeroAutoNext,
         heroInterval, setHeroInterval,
         heroVideoQuality, setHeroVideoQuality,
-        showVibeyChat, setShowVibeyChat
+        showVibeyChat, setShowVibeyChat,
+        dataSaverMode, setDataSaverMode
     } = useLayout();
 
     const toggleMetadata = (key) => {
@@ -169,6 +170,19 @@ const LayoutSection = () => {
                         <div
                             className={`toggle-item ${heroAutoNext ? 'active' : ''}`}
                             onClick={() => setHeroAutoNext(!heroAutoNext)}
+                        >
+                            <div className="toggle-switch"></div>
+                        </div>
+                    </div>
+
+                    <div className="setting-row">
+                        <div className="setting-info">
+                            <strong>Data Saver Mode</strong>
+                            <span>Disable autoplay background videos to save bandwidth</span>
+                        </div>
+                        <div
+                            className={`toggle-item ${dataSaverMode ? 'active' : ''}`}
+                            onClick={() => setDataSaverMode(!dataSaverMode)}
                         >
                             <div className="toggle-switch"></div>
                         </div>
