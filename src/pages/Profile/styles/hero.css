@@ -32,6 +32,18 @@
     margin: 0 auto;
 }
 
+.hub-stats-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.hub-activity-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 .hub-dashboard-header {
     display: grid;
     grid-template-columns: 380px 1fr;
@@ -42,5 +54,26 @@
 @media (max-width: 1100px) {
     .hub-dashboard-header {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-hero {
+        padding: 4rem 0 2rem;
+    }
+
+    .profile-hero-content {
+        padding: 0 1rem;
+    }
+
+    .hub-dashboard-header {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: stretch;
+    }
+
+    .hub-activity-row {
+        gap: 1.5rem;
     }
 }
