@@ -1,0 +1,62 @@
+.devtools-section {
+    animation: fadeIn 0.3s ease;
+}
+
+.dev-card-danger {
+    border-left: 4px solid var(--c-danger, #ef4444);
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+}
+
+.dev-card-info {
+    border-left: 4px solid var(--c-accent-lt);
+    background: linear-gradient(to right, rgba(var(--c-accent-rgb), 0.05), transparent);
+    margin-top: 2rem;
+}
+
+.btn-dev-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--c-surface3);
+    background: var(--c-surface2);
+    color: var(--c-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-dev-action:hover {
+    background: var(--c-surface3);
+    transform: translateY(-1px);
+}
+
+.btn-dev-action.btn-danger {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-dev-action.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+.btn-dev-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.debug-pre {
+    background: #0d0d12;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: #a1a1aa;
+    overflow-x: auto;
+    border: 1px solid var(--c-surface3);
+    margin-top: 1rem;
+}
