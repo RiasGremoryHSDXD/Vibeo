@@ -1,33 +1,25 @@
 /**
  * vibeyChatService.js
  * ═══════════════════════════════════════════════════════════════
- * Firestore CRUD for Vibey chat sessions.
- * Collection: users/{uid}/vibey_chats
+ * Handles Django Proxy endpoints for Vibey chat sessions.
  * ═══════════════════════════════════════════════════════════════
  */
 
-import {
-    collection,
-    doc,
-    addDoc,
-    getDoc,
-    getDocs,
-    updateDoc,
-    deleteDoc,
-    orderBy,
-    query,
-    serverTimestamp,
-} from 'firebase/firestore';
-import { db } from '../firebase';
+const BASE_URL = "http://127.0.0.1:8000/api/chat";
 
-/**
- * Get the chats subcollection ref for a user.
- */
-const chatsRef = (uid) => collection(db, 'users', uid, 'vibey_chats');
+const getAuthHeaders = async (currentUser) => {
+    if (!currentUser) return null;
+    try {
+        const token = await currentUser.getIdToken();
+        return {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+    } catch (e) {
+        return null;
+    }
+};
 
-/**
- * Auto-generate a short title from the first user message.
- */
 export const autoTitleChat = (firstMessage) => {
     if (!firstMessage) return 'New Chat';
     const cleaned = firstMessage.replace(/\n/g, ' ').trim();
@@ -35,101 +27,93 @@ export const autoTitleChat = (firstMessage) => {
     return cleaned.substring(0, 40).trim() + '…';
 };
 
-/**
- * Fetch all chats for a user, sorted by most recently updated.
- */
-export const getUserChats = async (uid) => {
-    if (!uid) return [];
+export const getUserChats = async (currentUser) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers) return [];
     try {
-        const q = query(chatsRef(uid), orderBy('updatedAt', 'desc'));
-        const snap = await getDocs(q);
-        return snap.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-        }));
-    } catch (err) {
-        console.error('[VibeyChatService] Error fetching chats:', err);
-        return [];
+        const res = await fetch(`${BASE_URL}/list/`, { headers });
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.error('[VibeyChatService] Error fetching chats:', e);
     }
+    return [];
 };
 
-/**
- * Fetch a single chat by ID.
- */
-export const getChatById = async (uid, chatId) => {
-    if (!uid || !chatId) return null;
+export const getChatById = async (currentUser, chatId) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers || !chatId) return null;
     try {
-        const snap = await getDoc(doc(db, 'users', uid, 'vibey_chats', chatId));
-        if (!snap.exists()) return null;
-        return { id: snap.id, ...snap.data() };
-    } catch (err) {
-        console.error('[VibeyChatService] Error fetching chat:', err);
-        return null;
+        const res = await fetch(`${BASE_URL}/${chatId}/`, { headers });
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.error('[VibeyChatService] Error fetching chat:', e);
     }
+    return null;
 };
 
-/**
- * Create a new chat document. Returns the new document ID.
- */
-export const createChat = async (uid, title = 'New Chat') => {
-    if (!uid) return null;
+
+
+export const updateChatMessages = async (currentUser, chatId, messages, title) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers || !chatId) return;
     try {
-        const docRef = await addDoc(chatsRef(uid), {
-            title,
-            messages: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+        const payload = { messages };
+        if (title !== undefined) payload.title = title;
+
+        await fetch(`${BASE_URL}/${chatId}/update/`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify(payload)
         });
-        return docRef.id;
-    } catch (err) {
-        console.error('[VibeyChatService] Error creating chat:', err);
-        return null;
+    } catch (e) {
+        console.error('[VibeyChatService] Error updating messages:', e);
     }
 };
 
-/**
- * Save messages to a chat and bump updatedAt.
- * Messages are stored as a serializable array (no Firestore-specific types).
- */
-export const updateChatMessages = async (uid, chatId, messages, title) => {
-    if (!uid || !chatId) return;
+export const renameChat = async (currentUser, chatId, newTitle) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers || !chatId || !newTitle) return;
     try {
-        const updateData = {
-            messages,
-            updatedAt: serverTimestamp(),
-        };
-        if (title !== undefined) {
-            updateData.title = title;
+        await fetch(`${BASE_URL}/${chatId}/update/`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ title: newTitle })
+        });
+    } catch (e) {
+        console.error('[VibeyChatService] Error renaming chat:', e);
+    }
+};
+
+export const deleteChatById = async (currentUser, chatId) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers || !chatId) return;
+    try {
+        await fetch(`${BASE_URL}/${chatId}/delete/`, {
+            method: 'DELETE',
+            headers
+        });
+    } catch (e) {
+        console.error('[VibeyChatService] Error deleting chat:', e);
+    }
+};
+
+export const sendMessage = async (currentUser, chatId, description) => {
+    const headers = await getAuthHeaders(currentUser);
+    if (!headers) return null;
+    try {
+        const payload = { description };
+        if (chatId) payload.chat_id = chatId;
+
+        const res = await fetch(`${BASE_URL}/message/`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+           return await res.json();
         }
-        await updateDoc(doc(db, 'users', uid, 'vibey_chats', chatId), updateData);
-    } catch (err) {
-        console.error('[VibeyChatService] Error updating messages:', err);
+    } catch (e) {
+        console.error('[VibeyChatService] Error sending message:', e);
     }
-};
-
-/**
- * Rename a chat.
- */
-export const renameChat = async (uid, chatId, newTitle) => {
-    if (!uid || !chatId) return;
-    try {
-        await updateDoc(doc(db, 'users', uid, 'vibey_chats', chatId), {
-            title: newTitle,
-            updatedAt: serverTimestamp(),
-        });
-    } catch (err) {
-        console.error('[VibeyChatService] Error renaming chat:', err);
-    }
-};
-
-/**
- * Delete a chat.
- */
-export const deleteChatById = async (uid, chatId) => {
-    if (!uid || !chatId) return;
-    try {
-        await deleteDoc(doc(db, 'users', uid, 'vibey_chats', chatId));
-    } catch (err) {
-        console.error('[VibeyChatService] Error deleting chat:', err);
-    }
+    return null;
 };
