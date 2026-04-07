@@ -12,11 +12,11 @@ import { useAuth } from '@/context/AuthContext';
 import { sendVibeyMessage } from '@/api/vibeyAI';
 import {
     getUserChats,
-    createChat,
     updateChatMessages,
     renameChat,
     deleteChatById,
     autoTitleChat,
+    sendMessage
 } from '@/api/vibeyChatService';
 import WatchlistDropdown from '@/components/common/WatchlistDropdown';
 import TrailerModal from '@/components/common/TrailerModal';
@@ -113,7 +113,7 @@ const VibeyPage = () => {
         if (!uid) { setChatsLoading(false); return; }
         const load = async () => {
             setChatsLoading(true);
-            const userChats = await getUserChats(uid);
+            const userChats = await getUserChats(currentUser);
             setChats(userChats);
             setChatsLoading(false);
         };
@@ -166,59 +166,30 @@ const VibeyPage = () => {
         const newHistory = [...conversationHistory, { role: 'user', content: trimmed }];
         setConversationHistory(newHistory);
 
-        // Create chat in Firestore if this is a new conversation
-        let chatId = activeChatId;
-        if (!chatId) {
-            const title = autoTitleChat(trimmed);
-            chatId = await createChat(uid, title);
-            if (!chatId) return;
-            setActiveChatId(chatId);
-            setChats(prev => [{ id: chatId, title, messages: [], updatedAt: new Date() }, ...prev]);
-        }
-
         setIsTyping(true);
 
         try {
-            const response = await sendVibeyMessage(newHistory);
-
-            const vibeyMsg = {
-                role: 'assistant',
-                content: response.text,
-                rawContent: response.rawResponse || response.text,
-                movies: response.movies || [],
-                timestamp: Date.now(),
-            };
-
-            const updatedMessages = [...newMessages, vibeyMsg];
-            setMessages(updatedMessages);
-            setConversationHistory(prev => [
-                ...prev,
-                { role: 'assistant', content: response.rawResponse || response.text },
-            ]);
-
-            // Persist to Firestore (strip rawContent for storage efficiency)
-            const storableMessages = updatedMessages.map(m => ({
-                role: m.role,
-                content: m.content,
-                ...(m.rawContent ? { rawContent: m.rawContent } : {}),
-                ...(m.movies?.length ? { movies: m.movies } : {}),
-                timestamp: m.timestamp,
-            }));
-
-            // Auto-title ONLY on the first exchange (user message + assistant response)
-            // This prevents overwriting manual renames on subsequent messages.
-            let title = undefined;
-            if (updatedMessages.length === 2) {
-                const firstUserMsg = updatedMessages.find(m => m.role === 'user');
-                title = firstUserMsg ? autoTitleChat(firstUserMsg.content) : undefined;
+            const response = await sendMessage(currentUser, activeChatId, trimmed);
+            if (!response) {
+                throw new Error("Failed to get response");
+            }
+            
+            if (!activeChatId && response.chat_id) {
+                setActiveChatId(response.chat_id);
+                setChats(prev => [{ id: response.chat_id, title: response.title || 'New Chat', messages: [], updatedAt: new Date() }, ...prev]);
+            } else if (response.title && chats.find(c => c.id === activeChatId)?.title !== response.title) {
+                setChats(prev => prev.map(c => c.id === (activeChatId || response.chat_id) ? { ...c, title: response.title, updatedAt: new Date() } : c));
             }
 
-            await updateChatMessages(uid, chatId, storableMessages, title);
-
-            // Update sidebar title if it was generated
-            if (title) {
-                setChats(prev => prev.map(c => c.id === chatId ? { ...c, title, updatedAt: new Date() } : c));
+            setMessages(response.messages || []);
+            
+            if (response.assistant_message) {
+                setConversationHistory(prev => [
+                    ...prev,
+                    { role: 'assistant', content: response.assistant_message.rawContent || response.assistant_message.content },
+                ]);
             }
+            
         } catch (err) {
             console.error('[VibeyPage] Send error:', err);
             const errorMsg = {
@@ -237,7 +208,7 @@ const VibeyPage = () => {
     const handleDeleteChat = useCallback(async (e, chatId) => {
         e.stopPropagation();
         if (!uid) return;
-        await deleteChatById(uid, chatId);
+        await deleteChatById(currentUser, chatId);
         setChats(prev => prev.filter(c => c.id !== chatId));
         if (activeChatId === chatId) {
             setActiveChatId(null);
@@ -256,7 +227,7 @@ const VibeyPage = () => {
     const confirmRename = async (e) => {
         e.stopPropagation();
         if (!uid || !renamingId || !renameValue.trim()) return;
-        await renameChat(uid, renamingId, renameValue.trim());
+        await renameChat(currentUser, renamingId, renameValue.trim());
         setChats(prev => prev.map(c => c.id === renamingId ? { ...c, title: renameValue.trim() } : c));
         setRenamingId(null);
     };
