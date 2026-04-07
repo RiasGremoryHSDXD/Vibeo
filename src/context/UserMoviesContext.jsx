@@ -18,7 +18,7 @@ export const getLocalISOString = (date = new Date()) => {
 };
 
 export const UserMoviesProvider = ({ children }) => {
-    const { currentUser } = useAuth();
+    const { currentUser, completeOnboarding } = useAuth();
     const [watchlist, setWatchlist] = useState([]);
     const [continueWatching, setContinueWatching] = useState([]);
     const [favoriteMovies, setFavoriteMovies] = useState([]);
@@ -395,6 +395,24 @@ export const UserMoviesProvider = ({ children }) => {
             // Record activity points for the massive onboarding completed list
             if (uniqueNewItems.length > 0) {
                 recordActivity(uniqueNewItems.length * 3); // 3 points per completed movie
+            }
+
+            // Sync with Django Backend
+            try {
+                const token = await currentUser.getIdToken();
+                await fetch("http://127.0.0.1:8000/api/auth/onboard/", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+            } catch (err) {
+                console.error("Failed to notify Django of onboarding:", err);
+            }
+
+            if (completeOnboarding) {
+                completeOnboarding();
             }
 
             return true;

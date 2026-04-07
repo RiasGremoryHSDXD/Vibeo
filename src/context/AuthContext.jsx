@@ -32,15 +32,28 @@ export const AuthProvider = ({ children }) => {
                 setCurrentUser(user);
                 setIsOnboarded(null);
                 try {
-                    const userRef = doc(db, 'users', user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists() && userSnap.data().onboarded) {
-                        setIsOnboarded(true);
+                    const token = await user.getIdToken();
+                    
+                    // --- TEMPORARY POSTMAN DEBUGGING ---
+                    console.log("MY FRESH TOKEN:", token);
+                    window.tempToken = token;
+                    // -----------------------------------
+
+                    const response = await fetch("http://127.0.0.1:8000/api/auth/me/", {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setIsOnboarded(data.onboarded);
                     } else {
+                        console.error("Failed to fetch user from Django", response.status);
                         setIsOnboarded(false);
                     }
                 } catch (error) {
-                    console.error("Error fetching user data:", error);
+                    console.error("Error communicating with Django:", error);
                     setIsOnboarded(false);
                 }
             } else {
@@ -53,12 +66,15 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
+    const completeOnboarding = () => setIsOnboarded(true);
+
     const value = useMemo(() => ({
         currentUser,
         loading,
         isOnboarded,
         loginWithGoogle,
-        logout
+        logout,
+        completeOnboarding
     }), [currentUser, loading, isOnboarded]);
 
     return (
