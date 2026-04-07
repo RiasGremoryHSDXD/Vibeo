@@ -10,7 +10,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { sendVibeyMessage } from '@/api/vibeyAI';
-import { createChat, updateChatMessages, autoTitleChat } from '@/api/vibeyChatService';
+import { updateChatMessages, autoTitleChat, sendMessage } from '@/api/vibeyChatService';
 import { Sparkles, Send, X, Play, Eye, MessageCircle, Maximize2 } from 'lucide-react';
 import './styles.css';
 
@@ -81,54 +81,29 @@ const VibeyChat = () => {
         setConversationHistory(newHistory);
 
         // Firestore: Create chat if needed
-        let chatId = activeChatId;
-        if (uid && !chatId) {
-            const title = autoTitleChat(trimmed);
-            chatId = await createChat(uid, title);
-            if (chatId) setActiveChatId(chatId);
-        }
-
-        // Show typing indicator
         setIsTyping(true);
 
         try {
-            const response = await sendVibeyMessage(newHistory);
+            const response = await sendMessage(currentUser, activeChatId, trimmed);
+            
+            if (!response) {
+                throw new Error("Failed to get response");
+            }
 
-            // Add Vibey's response
-            const vibeyMsg = {
-                role: 'assistant',
-                content: response.text,
-                rawContent: response.rawResponse || response.text,
-                movies: response.movies || [],
-                timestamp: Date.now(),
-            };
-
-            const updatedMessages = [...newMessages, vibeyMsg];
-            setMessages(updatedMessages);
-
-            // Update conversation history with response
-            setConversationHistory(prev => [
-                ...prev,
-                { role: 'assistant', content: response.rawResponse || response.text },
-            ]);
-
-            // Persist to Firestore if logged in
-            if (uid && chatId) {
-                const storableMessages = updatedMessages.map(m => ({
-                    role: m.role,
-                    content: m.content,
-                    ...(m.rawContent ? { rawContent: m.rawContent } : {}),
-                    ...(m.movies?.length ? { movies: m.movies } : {}),
-                    timestamp: m.timestamp,
-                }));
-
-                // Auto-title on first exchange
-                let title = undefined;
-                if (updatedMessages.length === 2) {
-                    title = autoTitleChat(trimmed);
-                }
-
-                await updateChatMessages(uid, chatId, storableMessages, title);
+            if (!activeChatId && response.chat_id) {
+                setActiveChatId(response.chat_id);
+            }
+            
+            // The backend returns the completely updated messages array,
+            // including the user's message and the AI's response with movies.
+            setMessages(response.messages || []);
+            
+            // If there's a specific AI message we want in history
+            if (response.assistant_message) {
+                setConversationHistory(prev => [
+                    ...prev,
+                    { role: 'assistant', content: response.assistant_message.rawContent || response.assistant_message.content },
+                ]);
             }
         } catch (err) {
             console.error('[Vibey] Send error:', err);
