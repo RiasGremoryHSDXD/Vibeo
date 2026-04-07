@@ -1,15 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove, setDoc, increment, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import { triggerError } from '@/components/common/ErrorToast';
 
 const UserMoviesContext = createContext();
 
-/**
- * Returns a YYYY-MM-DD string in the local timezone.
- * Fixes timezone bug where toISOString() uses UTC.
- */
 export const getLocalISOString = (date = new Date()) => {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -24,10 +18,30 @@ export const UserMoviesProvider = ({ children }) => {
     const [favoriteMovies, setFavoriteMovies] = useState([]);
     const [totalWatchTime, setTotalWatchTime] = useState(0);
     const [streakData, setStreakData] = useState({ current: 0, highest: 0, lastActiveDate: '' });
-    const [activityPoints, setActivityPoints] = useState({}); // { 'YYYY-MM-DD': points }
+    const [activityPoints, setActivityPoints] = useState({});
     const [loading, setLoading] = useState(true);
     const streakCheckedRef = useRef(false);
 
+    const callDjangoUpdate = async (updates) => {
+        if (!currentUser) return false;
+        try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch("http://127.0.0.1:8000/api/user/update/", {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updates)
+            });
+            return res.ok;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
+    };
+
+    // Replace the real-time listener with a start-up fetch
     useEffect(() => {
         if (!currentUser) {
             setWatchlist([]);
@@ -41,135 +55,101 @@ export const UserMoviesProvider = ({ children }) => {
         }
 
         streakCheckedRef.current = false;
-        setLoading(true);
-        const userRef = doc(db, 'users', currentUser.uid);
+        let isMounted = true;
 
-        // REAL-TIME LISTENER
-        const unsubscribe = onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const rawWatchlist = data.watchlist || [];
-                // Add legacy fallback for media_type
-                const processedWatchlist = rawWatchlist.map(m => ({
-                    ...m,
-                    media_type: m.media_type || (m.name ? 'tv' : 'movie')
-                }));
-                setWatchlist(processedWatchlist);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const token = await currentUser.getIdToken();
+                const res = await fetch("http://127.0.0.1:8000/api/user/data/", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                if (res.ok && isMounted) {
+                    const data = await res.json();
+                    
+                    const processedWatchlist = (data.watchlist || []).map(m => ({
+                        ...m, media_type: m.media_type || (m.name ? 'tv' : 'movie')
+                    }));
+                    setWatchlist(processedWatchlist);
 
-                const rawContinueWatching = data.continueWatching || [];
-                // Add legacy fallback for media_type in continue watching too
-                const processedContinueWatching = rawContinueWatching.map(m => ({
-                    ...m,
-                    media_type: m.media_type || (m.name ? 'tv' : 'movie')
-                }));
-                setContinueWatching(processedContinueWatching);
-                setFavoriteMovies(data.favoriteMovies || []);
-                setTotalWatchTime(data.totalWatchTime || 0);
+                    const processedCW = (data.continueWatching || []).map(m => ({
+                        ...m, media_type: m.media_type || (m.name ? 'tv' : 'movie')
+                    }));
+                    setContinueWatching(processedCW);
+                    setFavoriteMovies(data.favoriteMovies || []);
+                    setTotalWatchTime(data.totalWatchTime || 0);
 
-                const currentStreak = data.streak || { current: 0, highest: 0, lastActiveDate: '' };
-                setStreakData(currentStreak);
-                setActivityPoints(data.activityPoints || {});
+                    const currentStreak = data.streak || { current: 0, highest: 0, lastActiveDate: '' };
+                    setStreakData(currentStreak);
+                    setActivityPoints(data.activityPoints || {});
 
-                // Streak Calculation Logic & Daily Visit Point
-                const today = getLocalISOString();
-                if (currentStreak.lastActiveDate !== today && !streakCheckedRef.current) {
-                    streakCheckedRef.current = true;
-                    const updateStreak = async () => {
+                    // Streak Calculation
+                    const today = getLocalISOString();
+                    if (currentStreak.lastActiveDate !== today && !streakCheckedRef.current) {
+                        streakCheckedRef.current = true;
+                        
                         let newStreak = 1;
                         let newHighest = currentStreak.highest || 0;
 
                         if (currentStreak.lastActiveDate) {
                             const yesterday = new Date();
                             yesterday.setDate(yesterday.getDate() - 1);
-                            const yesterdayStr = getLocalISOString(yesterday);
-
-                            if (currentStreak.lastActiveDate === yesterdayStr) {
+                            if (currentStreak.lastActiveDate === getLocalISOString(yesterday)) {
                                 newStreak = (currentStreak.current || 0) + 1;
                             }
                         }
 
                         if (newStreak > newHighest) newHighest = newStreak;
 
-                        await updateDoc(userRef, {
-                            streak: {
-                                current: newStreak,
-                                highest: newHighest,
-                                lastActiveDate: today
-                            }
-                        });
-                        recordActivity(1); // Visit point
-                    };
-                    updateStreak();
+                        const streakObj = { current: newStreak, highest: newHighest, lastActiveDate: today };
+                        setStreakData(streakObj);
+                        await callDjangoUpdate({ streak: streakObj });
+                        recordActivity(1, true); // Avoid loop by passing skipUpdate parameter
+                    }
                 }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                if (isMounted) triggerError("Could not sync your library. Please check your connection.");
             }
-            setLoading(false);
-        }, (error) => {
-            console.error("Error listening to user movies:", error);
-            triggerError("Could not sync your library. Please check your connection.");
-            setLoading(false);
-        });
+            if (isMounted) setLoading(false);
+        };
 
-        return () => unsubscribe();
+        fetchData();
+        return () => { isMounted = false; };
     }, [currentUser]);
-
-    // Helper functions (copied and adapted from the former hook)
 
     const addToWatchlist = async (movie, status = 'planning') => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            let currentList = userSnap.exists() ? (userSnap.data().watchlist || []) : [];
-
-            // Prevent duplicates
-            if (currentList.some(m => m.id === Number(movie.id))) {
-                return await updateWatchlistStatus(movie, status);
-            }
-
-            const movieWithStatus = {
-                ...movie,
-                id: Number(movie.id),
-                status,
-                media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
-                genre_ids: movie.genre_ids || [],
-                addedAt: Date.now()
-            };
-
-            await updateDoc(userRef, {
-                watchlist: arrayUnion(movieWithStatus)
-            });
-            return true;
-        } catch (error) {
-            console.error("Error adding to watchlist:", error);
-            triggerError("Failed to add to library. Please try again.");
-            return false;
+        
+        if (watchlist.some(m => m.id === Number(movie.id))) {
+            return await updateWatchlistStatus(movie, status);
         }
+
+        const movieWithStatus = {
+            ...movie,
+            id: Number(movie.id),
+            status,
+            media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
+            genre_ids: movie.genre_ids || [],
+            addedAt: Date.now()
+        };
+
+        setWatchlist(prev => [...prev, movieWithStatus]);
+        return await callDjangoUpdate({ watchlist: { _fire_array_union: [movieWithStatus] } });
     };
 
     const removeFromWatchlist = async (movie) => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) return false;
-
-            const currentList = userSnap.data().watchlist || [];
-            const newList = currentList.filter(m => m.id !== Number(movie.id));
-
-            await updateDoc(userRef, {
-                watchlist: newList
-            });
-            return true;
-        } catch (error) {
-            console.error("Error removing from watchlist:", error);
-            triggerError("Failed to remove from library. Please try again.");
-            return false;
-        }
+        
+        const exactMovie = watchlist.find(m => m.id === Number(movie.id));
+        if (!exactMovie) return false;
+        
+        setWatchlist(prev => prev.filter(m => m.id !== Number(movie.id)));
+        return await callDjangoUpdate({ watchlist: { _fire_array_remove: [exactMovie] } });
     };
 
-    const isWatchlisted = (movieId) => {
-        return watchlist.some(m => m.id === Number(movieId));
-    };
+    const isWatchlisted = (movieId) => watchlist.some(m => m.id === Number(movieId));
 
     const getWatchlistStatus = (movieId) => {
         const movie = watchlist.find(m => m.id === Number(movieId));
@@ -178,57 +158,29 @@ export const UserMoviesProvider = ({ children }) => {
 
     const updateWatchlistStatus = async (movie, newStatus) => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) return await addToWatchlist(movie, newStatus);
+        
+        const movieIndex = watchlist.findIndex(m => m.id === Number(movie.id));
+        if (movieIndex === -1) return await addToWatchlist(movie, newStatus);
+        if (watchlist[movieIndex].status === newStatus) return true;
 
-            const currentList = userSnap.data().watchlist || [];
-            const movieIndex = currentList.findIndex(m => m.id === Number(movie.id));
+        const newList = [...watchlist];
+        newList[movieIndex] = { ...newList[movieIndex], status: newStatus, updatedAt: Date.now() };
 
-            if (movieIndex === -1) {
-                return await addToWatchlist(movie, newStatus);
-            }
+        setWatchlist(newList);
+        await callDjangoUpdate({ watchlist: newList });
 
-            // Already has the status? Success.
-            if (currentList[movieIndex].status === newStatus) return true;
+        if (newStatus === 'completed') recordActivity(3);
+        else recordActivity(1);
 
-            // Update status in a copy of the list
-            const newList = [...currentList];
-            newList[movieIndex] = {
-                ...newList[movieIndex],
-                status: newStatus,
-                updatedAt: Date.now()
-            };
-
-            await updateDoc(userRef, {
-                watchlist: newList
-            });
-
-            // Record Activity (points system)
-            if (newStatus === 'completed') {
-                recordActivity(3);
-            } else {
-                recordActivity(1);
-            }
-
-            return true;
-        } catch (error) {
-            console.error("Error updating watchlist status:", error);
-            triggerError("Failed to update status. Please try again.");
-            return false;
-        }
+        return true;
     };
 
     const toggleWatchlist = async (movie) => {
         if (!movie) return false;
         const simpleMovie = {
-            id: movie.id,
-            title: movie.title,
-            name: movie.name,
+            id: movie.id, title: movie.title, name: movie.name,
             media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
-            poster_path: movie.poster_path,
-            vote_average: movie.vote_average,
+            poster_path: movie.poster_path, vote_average: movie.vote_average,
             release_date: movie.release_date || movie.first_air_date,
             genre_ids: movie.genre_ids || []
         };
@@ -243,218 +195,131 @@ export const UserMoviesProvider = ({ children }) => {
     const addToContinueWatching = async (movie) => {
         if (!currentUser || !movie) return;
         const simpleMovie = {
-            id: movie.id,
-            title: movie.title,
-            name: movie.name,
+            id: movie.id, title: movie.title, name: movie.name,
             media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
-            poster_path: movie.poster_path,
-            vote_average: movie.vote_average,
+            poster_path: movie.poster_path, vote_average: movie.vote_average,
             release_date: movie.release_date || movie.first_air_date,
             timestamp: Date.now()
         };
 
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            let currentList = userSnap.exists() ? (userSnap.data().continueWatching || []) : [];
-            currentList = currentList.filter(m => m.id !== movie.id);
-            currentList.unshift(simpleMovie);
-            if (currentList.length > 20) currentList = currentList.slice(0, 20);
-            await setDoc(userRef, { continueWatching: currentList }, { merge: true });
-        } catch (error) {
-            console.error("Error adding to continue watching:", error);
-            triggerError("Could not update your watch history.");
-        }
+        let currentList = continueWatching.filter(m => m.id !== movie.id);
+        currentList.unshift(simpleMovie);
+        if (currentList.length > 20) currentList = currentList.slice(0, 20);
+
+        setContinueWatching(currentList);
+        await callDjangoUpdate({ continueWatching: currentList });
     };
 
     const removeFromContinueWatching = async (movieId) => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const newList = continueWatching.filter(m => m.id !== Number(movieId));
-            await updateDoc(userRef, { continueWatching: newList });
-            return true;
-        } catch (error) {
-            console.error("Error removing from continue watching:", error);
-            return false;
-        }
+        const newList = continueWatching.filter(m => m.id !== Number(movieId));
+        setContinueWatching(newList);
+        return await callDjangoUpdate({ continueWatching: newList });
     };
 
     const addWatchTime = async (seconds) => {
         if (!currentUser || typeof seconds !== 'number' || seconds <= 0) return;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userRef, { totalWatchTime: increment(seconds) }, { merge: true });
-        } catch (error) {
-            console.error("Error updating watch time:", error);
-            triggerError("Could not save your watch time.");
-        }
+        setTotalWatchTime(prev => prev + seconds);
+        await callDjangoUpdate({ totalWatchTime: { _fire_increment: seconds } });
     };
 
-    // --- ACTIVITY GRID LOGIC ---
-    const recordActivity = async (points) => {
+    const recordActivity = async (points, skipUpdate = false) => {
         if (!currentUser) return;
         const today = getLocalISOString();
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userRef, {
-                activityPoints: {
-                    [today]: increment(points)
-                }
-            }, { merge: true });
-        } catch (error) {
-            console.error("Error recording activity:", error);
-            // Don't trigger global error for silent points to avoid annoyance
+        setActivityPoints(prev => ({
+            ...prev,
+            [today]: (prev[today] || 0) + points
+        }));
+        
+        if (!skipUpdate) {
+            await callDjangoUpdate({
+                [`activityPoints.${today}`]: { _fire_increment: points }
+            });
         }
     };
 
     const clearWatchHistory = async () => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, { continueWatching: [] });
-            return true;
-        } catch (error) {
-            console.error("Error clearing watch history:", error);
-            return false;
-        }
+        setContinueWatching([]);
+        return await callDjangoUpdate({ continueWatching: [] });
     };
 
     const clearWatchlist = async () => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, { watchlist: [] });
-            return true;
-        } catch (error) {
-            console.error("Error clearing watchlist:", error);
-            return false;
-        }
+        setWatchlist([]);
+        return await callDjangoUpdate({ watchlist: [] });
     };
-
-    // --- FAVORITES LOGIC (Consolidated from AuthContext) ---
 
     const toggleFavorite = async (movie) => {
         if (!currentUser) return false;
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const isFav = favoriteMovies.some(m => m.id === movie.id);
+        const isFav = favoriteMovies.some(m => m.id === movie.id);
+        const exactMovie = favoriteMovies.find(m => m.id === movie.id);
 
-            if (isFav) {
-                const exactMovie = favoriteMovies.find(m => m.id === movie.id);
-                await updateDoc(userRef, { favoriteMovies: arrayRemove(exactMovie) });
-            } else {
-                await updateDoc(userRef, { favoriteMovies: arrayUnion(movie) });
-            }
-            return true;
-        } catch (error) {
-            console.error("Error toggling favorite:", error);
-            return false;
+        if (isFav) {
+            setFavoriteMovies(prev => prev.filter(m => m.id !== movie.id));
+            return await callDjangoUpdate({ favoriteMovies: { _fire_array_remove: [exactMovie] } });
+        } else {
+            setFavoriteMovies(prev => [...prev, movie]);
+            return await callDjangoUpdate({ favoriteMovies: { _fire_array_union: [movie] } });
         }
     };
 
     const saveOnboardingData = async ({ favorites = [], seen = [] }) => {
         if (!currentUser) return;
+        
+        const newWatchlistItems = seen.map(movie => ({
+            ...movie,
+            id: Number(movie.id),
+            status: 'completed',
+            media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
+            genre_ids: movie.genre_ids || [],
+            addedAt: Date.now(),
+            updatedAt: Date.now()
+        }));
+
+        const existingIds = new Set(watchlist.map(m => m.id));
+        const uniqueNewItems = newWatchlistItems.filter(m => !existingIds.has(m.id));
+        const updatedWatchlist = [...watchlist, ...uniqueNewItems];
+
+        // Optimistic UI
+        setFavoriteMovies(favorites);
+        setWatchlist(updatedWatchlist);
+        if (uniqueNewItems.length > 0) recordActivity(uniqueNewItems.length * 3);
+
+        const success = await callDjangoUpdate({
+            onboarded: true, // Used by the previous SQLite logic, but now writing to Firestore
+            favoriteMovies: favorites,
+            watchlist: updatedWatchlist,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            lastActiveDate: getLocalISOString()
+        });
+
+        // Inform Django to update onboarded (legacy fallback endpoint)
         try {
-            const userRef = doc(db, 'users', currentUser.uid);
+            const token = await currentUser.getIdToken();
+            await fetch("http://127.0.0.1:8000/api/auth/onboard/", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+        } catch (e) {}
 
-            // Add all "seen" movies to the watchlist as 'completed'
-            // To do this reliably during onboarding without triggering UI weirdness,
-            // we batch update the document's watchlist array directly.
-
-            // First get the current watchlist in case there is one (unlikely but possible)
-            const userSnap = await getDoc(userRef);
-            let currentWatchlist = userSnap.exists() ? (userSnap.data().watchlist || []) : [];
-
-            // Format seen movies
-            const newWatchlistItems = seen.map(movie => ({
-                ...movie,
-                id: Number(movie.id),
-                status: 'completed',
-                media_type: movie.media_type || (movie.name ? 'tv' : 'movie'),
-                genre_ids: movie.genre_ids || [],
-                addedAt: Date.now(),
-                updatedAt: Date.now()
-            }));
-
-            // Filter out any duplicates
-            const existingIds = new Set(currentWatchlist.map(m => m.id));
-            const uniqueNewItems = newWatchlistItems.filter(m => !existingIds.has(m.id));
-
-            const updatedWatchlist = [...currentWatchlist, ...uniqueNewItems];
-
-            await setDoc(userRef, {
-                onboarded: true,
-                favoriteMovies: favorites,
-                watchlist: updatedWatchlist,
-                email: currentUser.email,
-                displayName: currentUser.displayName,
-                lastActiveDate: getLocalISOString()
-            }, { merge: true });
-
-            // Record activity points for the massive onboarding completed list
-            if (uniqueNewItems.length > 0) {
-                recordActivity(uniqueNewItems.length * 3); // 3 points per completed movie
-            }
-
-            // Sync with Django Backend
-            try {
-                const token = await currentUser.getIdToken();
-                await fetch("http://127.0.0.1:8000/api/auth/onboard/", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    }
-                });
-            } catch (err) {
-                console.error("Failed to notify Django of onboarding:", err);
-            }
-
-            if (completeOnboarding) {
-                completeOnboarding();
-            }
-
-            return true;
-        } catch (error) {
-            console.error("Error saving onboarding data:", error);
-            throw error;
-        }
+        if (completeOnboarding) completeOnboarding();
+        return success;
     };
 
     const value = {
-        watchlist,
-        continueWatching,
-        favoriteMovies,
-        totalWatchTime,
-        streakData,
-        activityPoints,
-        loading,
-        isWatchlisted,
-        getWatchlistStatus,
-        updateWatchlistStatus,
-        toggleWatchlist,
-        addToContinueWatching,
-        addWatchTime,
-        removeFromContinueWatching,
-        clearWatchHistory,
-        clearWatchlist,
-        recordActivity,
-        toggleFavorite,
-        saveOnboardingData
+        watchlist, continueWatching, favoriteMovies, totalWatchTime, streakData, activityPoints,
+        loading, isWatchlisted, getWatchlistStatus, updateWatchlistStatus, toggleWatchlist,
+        addToContinueWatching, addWatchTime, removeFromContinueWatching, clearWatchHistory,
+        clearWatchlist, recordActivity, toggleFavorite, saveOnboardingData
     };
 
-    return (
-        <UserMoviesContext.Provider value={value}>
-            {children}
-        </UserMoviesContext.Provider>
-    );
+    return <UserMoviesContext.Provider value={value}>{children}</UserMoviesContext.Provider>;
 };
 
 export const useUserMoviesContext = () => {
     const context = useContext(UserMoviesContext);
-    if (!context) {
-        throw new Error('useUserMoviesContext must be used within a UserMoviesProvider');
-    }
+    if (!context) throw new Error('useUserMoviesContext must be used within a UserMoviesProvider');
     return context;
 };
